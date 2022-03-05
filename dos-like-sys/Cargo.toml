@@ -3,9 +3,11 @@ name = "dos-like-sys"
 version = "0.1.0"
 description = "Low-level bindings to dos-like"
 authors = ["Eduardo Pinho <enet4mikeenet@gmail.com>"]
+repository = "https://github.com/Enet4/dos-like-rs"
 keywords = ["dos", "vga", "opl", "ms-dos"]
 categories = ["external-ffi-bindings", "game-development", "graphics"]
 readme = "README.md"
+license-file = "LICENSE.md"
 edition = "2021"
 
 [dependencies]

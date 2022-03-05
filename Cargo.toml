@@ -1,0 +1,21 @@
+[package]
+name = "dos-like"
+version = "0.1.0"
+description = "Framework for writing DOS-like application"
+keywords = ["gamedev", "graphics"]
+repository = "https://github.com/Enet4/dos-like-rs"
+readme = "README.md"
+license-file = "LICENSE.md"
+exclude = ["assets/*"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dos-like-sys = { path = "dos-like-sys/" }
+lazy_static = "1.4.0"
+
+[features]
+
+default = []
+disable-screen-frame = ["dos-like-sys/disable-screen-frame"]

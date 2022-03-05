@@ -1,18 +1,18 @@
 [package]
 name = "dos-like"
 version = "0.1.0"
-description = "Framework for writing DOS-like application"
-keywords = ["gamedev", "graphics"]
+description = "Framework for writing DOS-like applications"
+authors = ["Eduardo Pinho <enet4mikeenet@gmail.com>"]
+keywords = ["dos", "vga", "opl", "ms-dos"]
+categories = ["external-ffi-bindings", "game-development", "graphics"]
 repository = "https://github.com/Enet4/dos-like-rs"
 readme = "README.md"
 license-file = "LICENSE.md"
 exclude = ["assets/*"]
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-dos-like-sys = { path = "dos-like-sys/" }
+dos-like-sys = { path = "dos-like-sys/", version = "0.1.0" }
 lazy_static = "1.4.0"
 
 [features]

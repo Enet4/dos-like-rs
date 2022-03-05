@@ -1,8 +1,7 @@
 # `dos-like` for Rust
 
-This crates provides high level bindings
-to [Mattias Gustavsson's `dos-like` framework][1],
-for writing DOS-like applications in Rust.
+This project provides access to [Mattias Gustavsson's `dos-like` framework][1],
+so as to write DOS-like applications in Rust.
 
 [1]: https://github.com/mattiasgustavsson/dos-like
 
@@ -38,16 +37,19 @@ dos_like_rs::dos_main! {
 See the [examples](examples) for a typical application structure,
 which are based on the original `dos-like` examples.
 
+A C compiler needs to be available (uses [`cc`](https://crates.io/crates/cc)).
+The dos-like framework is statically linked,
+just like in a C program.
+Check out the [`dos-like` README][2] for additional requirements.
+
+[2]: https://github.com/mattiasgustavsson/dos-like#readme
+
 ### Cargo features
 
 - `disable-screen-frame` compiles `dos-like` so that
 the CRT screen frame around the viewport does not appear.
 
 ## Building
-
-A C compiler needs to be available (uses [`cc`](https://crates.io/crates/cc)).
-The dos-like framework is statically linked,
-just like in a C program.
 
 When working on this project,
 ensure that the git submodule in `dos-like-sys/dos-like` was populated

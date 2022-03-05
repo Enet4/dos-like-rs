@@ -12,11 +12,12 @@ for writing DOS-like applications in Rust.
 It defines a main function on its own.
 For the executable linking to work correctly,
 the main source file needs to have no `main`
-and to define an function `extern "C"` `dosmain` instead.
+and to define a function `extern "C"` `dosmain` instead.
 
 ```rust
 #![no_main]
 
+#[no_mangle]
 pub extern "C" fn dosmain() -> i32 {
     // your code here
 
@@ -34,10 +35,25 @@ dos_like_rs::dos_main! {
 }
 ```
 
+See the [examples](examples) for a typical application structure,
+which are based on the original `dos-like` examples.
+
 ### Cargo features
 
 - `disable-screen-frame` compiles `dos-like` so that
 the CRT screen frame around the viewport does not appear.
+
+## Building
+
+A C compiler needs to be available (uses [`cc`](https://crates.io/crates/cc)).
+The dos-like framework is statically linked,
+just like in a C program.
+
+When working on this project,
+ensure that the git submodule in `dos-like-sys/dos-like` was populated
+(either by cloning with `--recurse-submodules`
+or by calling `git submodules update --init`).
+Some of the examples do not work unless with this submodule checked out.
 
 ## License and attribution notice
 

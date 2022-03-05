@@ -9,6 +9,37 @@
 //! Howeve, it is currently incomplete.
 //! When such an abstraction is not possible or not yet available,
 //! the low level unsafe bindings are available in [`dos_like_sys`].
+//! 
+//! ## Using
+//! 
+//! **This crate does not function as a regular library,**
+//! because it already defines a `main` function by itself.
+//! Attempting to create your own executable with its own `main` function
+//! will result in a linker error.
+//! For the building process to work,
+//! the main source file needs the `no_main` attribute
+//! and to define an extern C function `dosmain` instead.
+//! 
+//! ```no_run
+//! #![no_main]
+//!
+//! #[no_mangle]
+//! pub extern "C" fn dosmain() -> i32 {
+//!     // your code here
+//! 
+//!     0
+//! }
+//! ```
+//! 
+//! A utility macro is available as an alternative to declaring the function:
+//! 
+//! ```no_run
+//! #![no_main]
+//! 
+//! dos_like::dos_main! {
+//!     // your code here
+//! }
+//! ```
 
 pub use dos_like_sys;
 

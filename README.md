@@ -3,6 +3,8 @@
 This project provides access to [Mattias Gustavsson's `dos-like` framework][1],
 so as to write DOS-like applications in Rust.
 
+![Rotozoom example written in Rust](screenshot.png)
+
 [1]: https://github.com/mattiasgustavsson/dos-like
 
 ## How to use
@@ -10,8 +12,8 @@ so as to write DOS-like applications in Rust.
 **This crate is not a regular library.**
 It defines a main function on its own.
 For the executable linking to work correctly,
-the main source file needs to have no `main`
-and to define a function `extern "C"` `dosmain` instead.
+the main source file needs to declare no `main`
+and define an extern C function `dosmain` instead.
 
 ```rust
 #![no_main]

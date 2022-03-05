@@ -8,7 +8,7 @@ categories = ["external-ffi-bindings", "game-development", "graphics"]
 repository = "https://github.com/Enet4/dos-like-rs"
 readme = "README.md"
 license-file = "LICENSE.md"
-exclude = ["assets/*"]
+exclude = ["assets/*", "screenshot.png"]
 edition = "2021"
 
 [dependencies]

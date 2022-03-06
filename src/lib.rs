@@ -147,8 +147,17 @@ impl Image {
 pub enum FileError {
     /// Invalid file path (typically due to the presence of null bytes in the string)
     BadFilePath,
-    /// File not found, or failed to read/write
+    /// File not found, or failed to read
     FileNotFound,
+}
+
+impl std::fmt::Display for FileError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            FileError::BadFilePath => write!(f, "Invalid file path"),
+            FileError::FileNotFound => write!(f, "Failed to read file"),
+        }
+    }
 }
 
 /// Loads an image from a GIF file.

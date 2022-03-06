@@ -143,6 +143,7 @@ impl Image {
 }
 
 /// General error type for file loading functions which can fail
+#[derive(Debug)]
 pub enum FileError {
     /// Invalid file path (typically due to the presence of null bytes in the string)
     BadFilePath,

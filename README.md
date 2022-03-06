@@ -1,4 +1,4 @@
-# `dos-like` for Rust
+# `dos-like` for Rust &emsp; [![Latest Version](https://img.shields.io/crates/v/dos-like.svg)](https://crates.io/crates/dos-like) [![Continuous integration status](https://github.com/Enet4/dos-like-rs/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Enet4/dos-like-rs/actions/workflows/ci.yml) [![dependency status](https://deps.rs/repo/github/Enet4/dos-like-rs/status.svg)](https://deps.rs/repo/github/Enet4/dos-like-rs)
 
 This project provides access to [Mattias Gustavsson's `dos-like` framework][1],
 so as to write DOS-like applications in Rust.

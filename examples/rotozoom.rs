@@ -5,37 +5,33 @@
 //! See end of file for license
 #![no_main]
 
-use dos_like::{dos_main, wait_vbl, shutting_down};
-use dos_like::dos_like_sys::*;
+use dos_like::{
+    dos_like_sys::*, dos_main, load_gif, set_double_buffer, set_pal, set_video_mode, shutting_down,
+    wait_vbl, VideoMode,
+};
 use std::f32::consts::PI;
-use std::os::raw::c_int;
 
 dos_main! {
     unsafe {
-        setvideomode(videomode_t_videomode_320x200);
-        setdoublebuffer(1);
+        set_video_mode(VideoMode::Graphics320x200);
+        set_double_buffer(true);
 
-        let mut palette = [0_u8; 768];
-        let mut gif_width = 0;
-        let mut gif_height = 0;
-        let mut palcount = 0;
-        let gif = loadgif("assets/rotozoom.gif\0".as_ptr() as *const i8,
-            &mut gif_width,
-            &mut gif_height,
-            &mut palcount,
-            palette.as_mut_ptr(),
-        );
-        if gif.is_null() {
+        let gif = load_gif("assets/rotozoom.gif").unwrap_or_else(|_| {
             eprintln!("Could not load rotozoom.gif");
             std::process::exit(-2);
-        }
+        });
+        let palette = gif.raw_palette();
+        let palcount = gif.palette_count();
+        let gif_width = gif.width() as i32;
+        let gif_height = gif.height() as i32;
+        let gif_data = gif.data();
 
         for i in 0..palcount as usize {
-            setpal(
-                i as c_int,
-                palette[3 * i + 0] as c_int,
-                palette[3 * i + 1] as c_int,
-                palette[3 * i + 2] as c_int,
+            set_pal(
+                i,
+                palette[3 * i + 0],
+                palette[3 * i + 1],
+                palette[3 * i + 2],
             );
         }
 
@@ -60,11 +56,10 @@ dos_main! {
                         v += gif_height;
                     }
                     let src_ofs = u + v * gif_width;
-                    buffer.offset(dest_ofs as isize).write(*gif.offset(src_ofs as isize));
+                    buffer.offset(dest_ofs as isize).write(gif_data[src_ofs as usize]);
                     dest_ofs += 1;
                 }
             }
-            drop(buffer);
             buffer = swapbuffers();
 
             if keystate(keycode_t_KEY_ESCAPE) != 0 {

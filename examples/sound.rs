@@ -5,17 +5,19 @@
 
 #![no_main]
 
-use dos_like::dos_like_sys::*;
+use dos_like::{dos_like_sys::*, Music};
 
 #[no_mangle]
 pub extern "C" fn dosmain() -> i32 {
     unsafe {
-        setvideomode(videomode_t_videomode_80x25_8x16);
-
-        let mus = loadmus("dos-like-sys/dos-like/files/sound/doom.mus\0".as_ptr() as *const _);
-        let mid = loadmid("dos-like-sys/dos-like/files/sound/simon.mid\0".as_ptr() as *const _);
-        let r#mod = loadmod("dos-like-sys/dos-like/files/sound/cfodder.mod\0".as_ptr() as *const _);
-        let opb = loadopb("dos-like-sys/dos-like/files/sound/doom.opb\0".as_ptr() as *const _);
+        let mus = Music::load_mus("dos-like-sys/dos-like/files/sound/doom.mus")
+            .expect("Could not load doom.mus");
+        let mid = Music::load_mid("dos-like-sys/dos-like/files/sound/simon.mid")
+            .expect("Could not load simon.mid");
+        let r#mod = Music::load_mod("dos-like-sys/dos-like/files/sound/cfodder.mod")
+            .expect("Could not load cfodder.mod");
+        let opb = Music::load_opb("dos-like-sys/dos-like/files/sound/doom.opb")
+            .expect("Could not load doom.opb");
         let wav = loadwav("dos-like-sys/dos-like/files/sound/soundcard.wav\0".as_ptr() as *const _);
         let doom_soundbank = installusersoundbank(
             "dos-like-sys/dos-like/files/sound/doom.op2\0".as_ptr() as *const _,
@@ -62,7 +64,7 @@ pub extern "C" fn dosmain() -> i32 {
                     } else {
                         setsoundbank(DEFAULT_SOUNDBANK_SB16 as i32);
                     }
-                    playmusic(mid, 0, 255);
+                    mid.play(false, 255);
                 }
                 b'2' => {
                     if use_awe32 {
@@ -70,13 +72,13 @@ pub extern "C" fn dosmain() -> i32 {
                     } else {
                         setsoundbank(doom_soundbank);
                     }
-                    playmusic(mus, 0, 255);
+                    mus.play(false, 255);
                 }
                 b'3' => {
-                    playmusic(r#mod, 0, 255);
+                    r#mod.play(false, 255);
                 }
                 b'O' | b'o' => {
-                    playmusic(opb, 0, 255);
+                    opb.play(false, 255);
                 }
                 b'4' => {
                     playsound(0, wav, 0, 128);

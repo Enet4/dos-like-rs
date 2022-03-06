@@ -1,6 +1,6 @@
 //! Video module
 
-use std::{os::raw::{c_int, c_uint}, ffi::CString};
+use std::{os::raw::{c_int, c_uint}, ffi::{CString, CStr}};
 
 use crate::FileError;
 
@@ -503,25 +503,42 @@ pub fn set_text_style(font: FontId, bold: bool, italic: bool, underline: bool) {
 
 // --- Pure text mode functions ---
 
-/// Writes an ASCII string to the screen, at the current cursor position.
+/// Writes a string to the screen, at the current cursor position.
 /// 
 /// Does nothing unless the video is in text mode.
+/// 
+/// This is equivalent to creating a [`CString`](std::ffi::CString)
+/// (so that it is null terminated)
+/// and calling [`c_puts`].
 /// 
 /// # Panics
 /// 
 /// Panics if the given string cannot be converted to be printed to the screen.
 /// Always check for null characters (`\0`) in the string
 /// before calling this function.
-pub fn cputs(string: impl AsRef<[u8]>) {
+#[inline]
+pub fn put_str(string: impl AsRef<str>) {
     let text = CString::new(string.as_ref()).unwrap();
+    put_cstr(&text)
+}
+
+/// Writes a C string to the screen, at the current cursor position.
+/// 
+/// Requires a valid, null terminated C-style string,
+/// but does not require a new string to be allocated.
+/// 
+/// Does nothing unless the video is in text mode.
+#[inline]
+pub fn put_cstr(text: impl AsRef<CStr>) {
     unsafe {
-        dos_like_sys::cputs(text.as_ptr() as *const _);
+        dos_like_sys::cputs(text.as_ref().as_ptr() as *const _);
     }
 }
 
 /// Sets the color of the text.
 /// 
 /// Only works in text mode.
+#[inline]
 pub fn text_color(color: u32) {
     unsafe {
         dos_like_sys::textcolor(color as c_int);
@@ -531,6 +548,7 @@ pub fn text_color(color: u32) {
 /// Sets the background color of the text by palette color index.
 /// 
 /// Only works in text mode.
+#[inline]
 pub fn text_background(color: u8) {
     unsafe {
         dos_like_sys::textbackground(color as c_int);
@@ -540,6 +558,7 @@ pub fn text_background(color: u8) {
 /// Moves the cursor to the specified position.
 /// 
 /// Only works in text mode.
+#[inline]
 pub fn goto_xy(x: u16, y: u16) {
     unsafe {
         dos_like_sys::gotoxy(x as c_int, y as c_int);
@@ -549,6 +568,7 @@ pub fn goto_xy(x: u16, y: u16) {
 /// Gets the cursor's current X position.
 /// 
 /// Returns 0 if the video is not in text mode.
+#[inline]
 pub fn where_x() -> u16 {
     unsafe { dos_like_sys::wherex().max(0) as u16 }
 }
@@ -556,6 +576,7 @@ pub fn where_x() -> u16 {
 /// Gets the cursor's current Y position.
 /// 
 /// Returns 0 if the video is not in text mode.
+#[inline]
 pub fn where_y() -> u16 {
     unsafe { dos_like_sys::wherex().max(0) as u16 }
 }
@@ -572,6 +593,7 @@ pub fn clr_scr() {
 /// The cursor is visible to the user by default.
 /// 
 /// Only works in text mode.
+#[inline]
 pub fn curs_on() {
     unsafe {
         dos_like_sys::curson();
@@ -581,6 +603,7 @@ pub fn curs_on() {
 /// Hides the text cursor.
 /// 
 /// Only works in text mode.
+#[inline]
 pub fn curs_off() {
     unsafe {
         dos_like_sys::cursoff();

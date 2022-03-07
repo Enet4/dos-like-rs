@@ -161,8 +161,11 @@ impl Soundbank {
     }
 
     /// Sets this soundbank for subsequent audio operations.
+    ///
+    /// Equivalent to the module's [`set_soundbank`] function.
+    #[inline]
     pub fn set_soundbank(&self) {
-        unsafe { dos_like_sys::setsoundbank(self.to_id()) }
+        set_soundbank(self);
     }
 }
 
@@ -177,6 +180,12 @@ pub fn install_user_soundbank(filename: impl AsRef<str>) -> Result<Soundbank, Fi
 
         Soundbank::from_id(soundbank_id as u32).ok_or(FileError::FileNotFound)
     }
+}
+
+/// Sets this soundbank for subsequent audio operations.
+#[inline]
+pub fn set_soundbank(soundbank: &Soundbank) {
+    unsafe { dos_like_sys::setsoundbank(soundbank.to_id()) }
 }
 
 // -- music channel manipulation functions

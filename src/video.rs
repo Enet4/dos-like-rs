@@ -1,11 +1,16 @@
 //! Video module
 
-use std::{os::raw::{c_int, c_uint}, ffi::{CString, CStr}};
+use std::{
+    ffi::{CStr, CString},
+    num::NonZeroU32,
+    os::raw::{c_int, c_uint},
+};
 
 use crate::FileError;
 
+/// A simple descriptor for whether a video mode is in text or graphics mode.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub enum VideoType {
+pub enum VideoModeKind {
     /// Text mode, where each cell is a character or glyph.
     /// and the resolution is defined via cell matrix and font size.
     Text,
@@ -54,31 +59,44 @@ pub enum VideoMode {
 }
 
 impl VideoMode {
-
-    /// Gets whether the given video mode is in graphics mode.
-    pub fn is_graphics(self) -> bool {
+    /// Gets the kind of video mode this is (text or graphics).
+    pub fn kind(self) -> VideoModeKind {
         match self {
-            VideoMode::Graphics320x200
-            | VideoMode::Graphics320x240
-            | VideoMode::Graphics320x400
-            | VideoMode::Graphics640x200
-            | VideoMode::Graphics640x350
-            | VideoMode::Graphics640x400
-            | VideoMode::Graphics640x480 => true,
             VideoMode::Text40x25_8x8
             | VideoMode::Text40x25_9x16
             | VideoMode::Text80x25_8x8
             | VideoMode::Text80x25_8x16
             | VideoMode::Text80x25_9x16
             | VideoMode::Text80x43_8x8
-            | VideoMode::Text80x50_8x8 => false,
+            | VideoMode::Text80x50_8x8 => VideoModeKind::Text,
+            VideoMode::Graphics320x200
+            | VideoMode::Graphics320x240
+            | VideoMode::Graphics320x400
+            | VideoMode::Graphics640x200
+            | VideoMode::Graphics640x350
+            | VideoMode::Graphics640x400
+            | VideoMode::Graphics640x480 => VideoModeKind::Graphics,
         }
+    }
+
+    /// Gets whether the given video mode is in graphics mode.
+    #[inline]
+    pub fn is_graphics(self) -> bool {
+        self.kind() == VideoModeKind::Graphics
     }
 
     /// Gets whether the given video mode is in text mode.
     #[inline]
     pub fn is_text(self) -> bool {
-        !self.is_graphics()
+        self.kind() == VideoModeKind::Text
+    }
+
+    /// Sets the application video mode to this one.
+    ///
+    /// Equivalent to the module's [`set_video_mode`].
+    #[inline]
+    pub fn set_video_mode(self) {
+        set_video_mode(self)
     }
 }
 
@@ -133,12 +151,12 @@ pub fn pal(index: usize) -> (u8, u8, u8) {
 // some operations are hard to be marked as safe by the compiler.
 
 /// Gets a mutable slice of the current screen buffer.
-/// 
+///
 /// Only makes sense in graphics mode.
 /// The length of the slice is equal to the number of pixels on the screen.
-/// 
+///
 /// # Safety
-/// 
+///
 /// It is unsafe because access to the screen is not guaranteed to be exclusive.
 /// Calling _any function_ that blits _anything_ to the screen
 /// during the returned slice's lifetime
@@ -163,11 +181,11 @@ pub unsafe fn screen_buffer() -> &'static mut [u8] {
 }
 
 /// Swaps the current buffer a mutable slice of the current screen buffer.
-/// 
+///
 /// Only makes sense in graphics mode.
-/// 
+///
 /// # Safety
-/// 
+///
 /// It is unsafe because access to the screen is not guaranteed to be exclusive.
 /// Calling _any function_ that blits _anything_ to the screen
 /// during the returned slice's lifetime
@@ -181,25 +199,24 @@ pub unsafe fn screen_buffer() -> &'static mut [u8] {
 /// if double buffering is enabled
 /// (via [`set_double_buffer`]).
 /// and the other slice is immediately dropped.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```no_run
 /// # use dos_like::*;
+/// set_video_mode(VideoMode::Graphics320x200);
 /// set_double_buffer(true);
 /// // safety: I solemnly swear that I will not draw anything through other functions
-/// let mut buffer = unsafe {
-///     screen_buffer()
-/// };
-/// 
+/// let mut buffer = unsafe { screen_buffer() };
+///
 /// loop {
 ///     // do things with buffer
-///     buffer[0] = 1;
-/// 
-///     // safety: previous buffer was dropped
-///     buffer = unsafe {
-///         swap_buffers()
-///     };
+///     for (i, v) in buffer.chunks_mut(320).enumerate() {
+///         v.fill(i as u8);
+///     }
+///
+///     // safety: previous buffer slice will be dropped
+///     buffer = unsafe { swap_buffers() };
 /// }
 /// ```
 pub unsafe fn swap_buffers() -> &'static mut [u8] {
@@ -216,8 +233,120 @@ pub unsafe fn swap_buffers() -> &'static mut [u8] {
     }
 }
 
-
 // -- Graphics manipulation functions
+
+/// Blits a rectangular portion of a video data buffer to the screen.
+///
+/// - `x` and `y` are the target coordinates of the top-left corner
+///   to blit on the screen
+/// - `width` and `height` are the full dimensions of the source data
+/// - `src_x` and `src_y` are the coordinates of the starting position
+///   to blit from the source data
+/// - `src_width` and `src_height` are the width and height to effectively blit
+///   from the source data
+///
+/// # Panic
+///
+/// Panics if the given source parameters
+/// are incompatible with the length of the source,
+/// since this is likely a bug.
+pub fn blit(
+    x: u16,
+    y: u16,
+    source: &[u8],
+    width: u16,
+    height: u16,
+    src_x: u16,
+    src_y: u16,
+    src_width: u16,
+    src_height: u16,
+) {
+    if width as usize * height as usize > source.len() {
+        panic!(
+            "blit: source data ({} bytes) is too short for resolution {}x{}",
+            source.len(),
+            width,
+            height
+        );
+    }
+
+    // Safety:
+    // - the source data length has been validated against `width` and `height`
+    // - although a *mut pointer is passed, the impl is sure to never write to it
+    unsafe {
+        dos_like_sys::blit(
+            x as c_int,
+            y as c_int,
+            source.as_ptr() as *mut _,
+            width as c_int,
+            height as c_int,
+            src_x as c_int,
+            src_y as c_int,
+            src_width as c_int,
+            src_height as c_int,
+        );
+    }
+}
+
+/// Blits a masked rectangular portion of a video data buffer to the screen,
+/// skipping pixels that are stated to be fully transparent.
+///
+/// - `x` and `y` are the target coordinates of the top-left corner
+///   to blit on the screen
+/// - `width` and `height` are the full dimensions of the source data
+/// - `src_x` and `src_y` are the coordinates of the starting position
+///   to blit from the source data
+/// - `src_width` and `src_height` are the width and height to effectively blit
+///   from the source data
+/// - `color_key` is the color to skip when blitting
+///
+/// # Panic
+///
+/// Panics if the given source parameters
+/// are incompatible with the length of the source,
+/// since this is likely a bug.
+pub fn mask_blit(
+    x: u16,
+    y: u16,
+    source: &[u8],
+    width: u16,
+    height: u16,
+    src_x: u16,
+    src_y: u16,
+    src_width: u16,
+    src_height: u16,
+    color_key: u8,
+) {
+    if width as usize * height as usize > source.len() {
+        panic!(
+            "blit: source data ({} bytes) is too short for resolution {}x{}",
+            source.len(),
+            width,
+            height
+        );
+    }
+
+    // Safety:
+    // - the source data length has been validated against `width` and `height`
+    // - although a *mut pointer is passed, the impl is sure to never write to it
+    unsafe {
+        dos_like_sys::maskblit(
+            x as c_int,
+            y as c_int,
+            source.as_ptr() as *mut _,
+            width as c_int,
+            height as c_int,
+            src_x as c_int,
+            src_y as c_int,
+            src_width as c_int,
+            src_height as c_int,
+            color_key as c_int,
+        );
+    }
+}
+
+//void blit( int x, int y, unsigned char* source, int width, int height, int srcx, int srcy, int srcw, int srch );
+//void maskblit( int x, int y, unsigned char* source, int width, int height, int srcx, int srcy, int srcw, int srch, int colorkey );
 
 /// Clears the screen when in graphics mode.
 #[inline]
@@ -228,18 +357,15 @@ pub fn clear_screen() {
 }
 
 /// Gets the color of a single pixel on the screen.
-/// 
+///
 /// Only makes sense in graphics mode.
 #[inline]
 pub fn pixel(x: u16, y: u16) -> u8 {
-    unsafe {
-        dos_like_sys::getpixel(x as c_int, y as c_int) as u8
-    }
+    unsafe { dos_like_sys::getpixel(x as c_int, y as c_int) as u8 }
 }
 
-
 /// Puts a color on a single pixel.
-/// 
+///
 /// Only makes sense in graphics mode.
 #[inline]
 pub fn put_pixel(x: u16, y: u16, color: u8) {
@@ -249,18 +375,18 @@ pub fn put_pixel(x: u16, y: u16, color: u8) {
 }
 
 /// Draws a horizonal line.
-/// 
+///
 /// Only makes sense in graphics mode.
 #[inline]
 pub fn h_line(x: u16, y: u16, len: u16, color: u8) {
     unsafe {
-        dos_like_sys::hline( x as c_int, y as c_int, len as c_int, color as c_int);
+        dos_like_sys::hline(x as c_int, y as c_int, len as c_int, color as c_int);
     }
 }
 
 /// Sets the foreground color to the given palette color index
 /// for subsequent drawing operations.
-/// 
+///
 /// Only works in graphics mode.
 #[inline]
 pub fn set_color(color: u8) {
@@ -270,47 +396,45 @@ pub fn set_color(color: u8) {
 }
 
 /// Gets the current foreground color by palette color index.
-/// 
+///
 /// Returns 0 if video is not in graphics mode.
 #[inline]
 pub fn get_color() -> u8 {
-    unsafe {
-        dos_like_sys::getcolor() as u8
-    }
+    unsafe { dos_like_sys::getcolor() as u8 }
 }
 
 /// Draws a line on the screen from one position to another.
-/// 
+///
 /// Only makes sense in graphics mode.
 #[inline]
 pub fn line(x1: u16, y1: u16, x2: u16, y2: u16) {
     unsafe {
-        dos_like_sys::line(x1 as c_int,y1 as c_int,x2 as c_int,y2 as c_int);
+        dos_like_sys::line(x1 as c_int, y1 as c_int, x2 as c_int, y2 as c_int);
     }
 }
 
 /// Draws a non-filled rectangle on the screen.
-/// 
+///
 /// Only makes sense in graphics mode.
 #[inline]
 pub fn rectangle(x1: u16, y1: u16, x2: u16, y2: u16) {
     unsafe {
-        dos_like_sys::rectangle(x1 as c_int,y1 as c_int,x2 as c_int,y2 as c_int);
+        dos_like_sys::rectangle(x1 as c_int, y1 as c_int, x2 as c_int, y2 as c_int);
     }
 }
 
 /// Draws a filled rectangle on the screen.
-/// 
+///
 /// Only makes sense in graphics mode.
 #[inline]
 pub fn bar(x1: u16, y1: u16, x2: u16, y2: u16) {
     unsafe {
-        dos_like_sys::bar(x1 as c_int,y1 as c_int,x2 as c_int,y2 as c_int);
+        dos_like_sys::bar(x1 as c_int, y1 as c_int, x2 as c_int, y2 as c_int);
     }
 }
 
 /// Draws a circle with no filling on the screen.
-/// 
+///
 /// Only makes sense in graphics mode.
 #[inline]
 pub fn circle(x: u16, y: u16, r: u16) {
@@ -320,7 +444,7 @@ pub fn circle(x: u16, y: u16, r: u16) {
 }
 
 /// Draws a filled circle on the screen.
-/// 
+///
 /// Only makes sense in graphics mode.
 #[inline]
 pub fn fill_circle(x: u16, y: u16, r: u16) {
@@ -330,7 +454,7 @@ pub fn fill_circle(x: u16, y: u16, r: u16) {
 }
 
 /// Draws a non-filled ellipse on the screen.
-/// 
+///
 /// Only makes sense in graphics mode.
 #[inline]
 pub fn ellipse(x: u16, y: u16, rx: u16, ry: u16) {
@@ -340,7 +464,7 @@ pub fn ellipse(x: u16, y: u16, rx: u16, ry: u16) {
 }
 
 /// Draws a filled ellipse on the screen.
-/// 
+///
 /// Only makes sense in graphics mode.
 #[inline]
 pub fn fill_ellipse(x: u16, y: u16, rx: u16, ry: u16) {
@@ -351,16 +475,16 @@ pub fn fill_ellipse(x: u16, y: u16, rx: u16, ry: u16) {
 
 /// Draws a non-filled polygon on the screen,
 /// with the given flat list of XY coordinates in pixels.
-/// 
+///
 /// Only makes sense in graphics mode.
-/// 
+///
 /// # Panic
-/// 
+///
 /// Panics if the given list of points is empty or not even.
 #[inline]
 pub fn draw_poly(points: &[u16]) {
     assert!(points.len() > 0 && points.len() % 2 == 0);
-    
+
     // Safety: although the pointer type is *mut,
     // it never really writes via the pointer.
     unsafe {
@@ -370,16 +494,16 @@ pub fn draw_poly(points: &[u16]) {
 
 /// Draws a filled polygon on the screen,
 /// with the given flat list of XY coordinates in pixels.
-/// 
+///
 /// Only makes sense in graphics mode.
-/// 
+///
 /// # Panic
-/// 
+///
 /// Panics if the given list of points is empty or not even.
 #[inline]
 pub fn fill_poly(points: &[u16]) {
     assert!(points.len() > 0 && points.len() % 2 == 0);
-    
+
     // Safety: although the pointer type is *mut,
     // it never really writes via the pointer.
     unsafe {
@@ -388,7 +512,7 @@ pub fn fill_poly(points: &[u16]) {
 }
 
 /// Flood fills the screen from the given position.
-/// 
+///
 /// Only makes sense in graphics mode.
 pub fn flood_fill(x: u16, y: u16) {
     unsafe {
@@ -398,7 +522,7 @@ pub fn flood_fill(x: u16, y: u16) {
 
 /// Flood fills the screen from the given position
 /// with the given color as boundary.
-/// 
+///
 /// Only makes sense in graphics mode.
 pub fn boundary_fill(x: u16, y: u16, boundary: u8) {
     unsafe {
@@ -407,7 +531,7 @@ pub fn boundary_fill(x: u16, y: u16, boundary: u8) {
 }
 
 /// Blits a text to the screen at the given position.
-/// 
+///
 /// XY coordinates are in pixels.
 pub fn out_text_xy(x: u16, y: u16, text: impl AsRef<[u8]>) {
     let text = CString::new(text.as_ref()).unwrap();
@@ -419,100 +543,134 @@ pub fn out_text_xy(x: u16, y: u16, text: impl AsRef<[u8]>) {
 
 /// Blits a text to the screen at the given position,
 /// wrapping around before it goes beyond the width specified.
-/// 
+///
 /// XY coordinates and width are in pixels.
 pub fn wrap_text_xy(x: u16, y: u16, text: impl AsRef<[u8]>, width: u16) {
     let text = CString::new(text.as_ref()).unwrap();
 
     unsafe {
-        dos_like_sys::wraptextxy(x as c_int, y as c_int, text.as_ptr() as *const _, width as c_int);
+        dos_like_sys::wraptextxy(
+            x as c_int,
+            y as c_int,
+            text.as_ptr() as *const _,
+            width as c_int,
+        );
     }
 }
 
 /// Blits a text to the screen at the given position,
 /// wrapping around before it goes beyond the width specified.
-/// 
+///
 /// XY coordinates and width are in pixels.
 pub fn center_text_xy(x: u16, y: u16, text: impl AsRef<[u8]>, width: u16) {
     let text = CString::new(text.as_ref()).unwrap();
 
     unsafe {
-        dos_like_sys::centertextxy(x as c_int, y as c_int, text.as_ptr() as *const _, width as c_int);
+        dos_like_sys::centertextxy(
+            x as c_int,
+            y as c_int,
+            text.as_ptr() as *const _,
+            width as c_int,
+        );
     }
 }
-
 
 // -- Font manipulation functions --
 
 /// A font identifier.
-/// 
+///
 /// Use [`install_user_font`] to obtain a font,
-/// or take [`FontId::BASE`] for the default font.
+/// or take one of the associated constants for the default fonts.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 #[repr(transparent)]
-pub struct FontId(c_int);
+pub struct Font(NonZeroU32);
 
-impl FontId {
-    /// The default font.
-    pub const BASE: FontId = FontId(0);
+impl Font {
+    /// The default 8x8 font.
+    pub const DEFAULT_8X8: Font = Font(
+        // safety: definitely not 0
+        unsafe { NonZeroU32::new_unchecked(dos_like_sys::DEFAULT_FONT_8X8) },
+    );
+
+    /// The default 8x16 font.
+    pub const DEFAULT_8X16: Font = Font(
+        // safety: definitely not 0
+        unsafe { NonZeroU32::new_unchecked(dos_like_sys::DEFAULT_FONT_8X16) },
+    );
+
+    /// The default 9x16 font.
+    pub const DEFAULT_9X16: Font = Font(
+        // safety: definitely not 0
+        unsafe { NonZeroU32::new_unchecked(dos_like_sys::DEFAULT_FONT_9X16) },
+    );
 
     /// Installs a font from a .fnt file
-    /// 
+    ///
     /// This is the same as the module's [`install_user_font`] function.
     pub fn install_user_font(filename: impl AsRef<str>) -> Result<Self, FileError> {
         install_user_font(filename)
     }
 
-    /// Obtain a font identifier by its internal index.
-    /// 
+    /// Obtains a font identifier by its internal index.
+    ///
     /// This operation does not check whether the font really exists.
     #[inline]
-    pub fn from_id(id: c_int) -> FontId {
-        FontId(id)
+    pub fn from_id(id: u32) -> Option<Font> {
+        Self::from_raw_id(id as c_int)
+    }
+
+    #[inline]
+    fn from_raw_id(id: c_int) -> Option<Font> {
+        NonZeroU32::new(id as u32).map(Font)
+    }
+
+    #[inline]
+    fn to_id(self) -> c_int {
+        self.0.get() as c_int
     }
 }
 
 /// Installs a font from a .fnt file.
-/// 
+///
 /// Returns the identifier of the font.
-pub fn install_user_font(filename: impl AsRef<str>) -> Result<FontId, FileError> {
+pub fn install_user_font(filename: impl AsRef<str>) -> Result<Font, FileError> {
     let filename = CString::new(filename.as_ref()).map_err(|_| FileError::BadFilePath)?;
 
     unsafe {
         let font_id = dos_like_sys::installuserfont(filename.as_ptr() as *const _);
 
-        if font_id == 0 {
-            Err(FileError::FileNotFound)
-        } else {
-            Ok(FontId(font_id))
-        }
-        
+        Font::from_id(font_id as u32).ok_or(FileError::FileNotFound)
     }
 }
 
 /// Sets the font and style of upcoming text blit operations.
-/// 
+///
 /// This is only available in graphics mode with a font loaded.
 /// The operations is ignored if `FontId` does not correspond to a valid font.
 #[inline]
-pub fn set_text_style(font: FontId, bold: bool, italic: bool, underline: bool) {
+pub fn set_text_style(font: Font, bold: bool, italic: bool, underline: bool) {
     unsafe {
-        dos_like_sys::settextstyle(font.0, bold as c_int, italic as c_int, underline as c_int);
+        dos_like_sys::settextstyle(
+            font.to_id(),
+            bold as c_int,
+            italic as c_int,
+            underline as c_int,
+        );
     }
 }
 
 // --- Pure text mode functions ---
 
 /// Writes a string to the screen, at the current cursor position.
-/// 
+///
 /// Does nothing unless the video is in text mode.
-/// 
+///
 /// This is equivalent to creating a [`CString`](std::ffi::CString)
 /// (so that it is null terminated)
 /// and calling [`c_puts`].
-/// 
+///
 /// # Panics
-/// 
+///
 /// Panics if the given string cannot be converted to be printed to the screen.
 /// Always check for null characters (`\0`) in the string
 /// before calling this function.
@@ -523,10 +681,10 @@ pub fn put_str(string: impl AsRef<str>) {
 }
 
 /// Writes a C string to the screen, at the current cursor position.
-/// 
+///
 /// Requires a valid, null terminated C-style string,
 /// but does not require a new string to be allocated.
-/// 
+///
 /// Does nothing unless the video is in text mode.
 #[inline]
 pub fn put_cstr(text: impl AsRef<CStr>) {
@@ -536,7 +694,7 @@ pub fn put_cstr(text: impl AsRef<CStr>) {
 }
 
 /// Sets the color of the text.
-/// 
+///
 /// Only works in text mode.
 #[inline]
 pub fn text_color(color: u32) {
@@ -546,7 +704,7 @@ pub fn text_color(color: u32) {
 }
 
 /// Sets the background color of the text by palette color index.
-/// 
+///
 /// Only works in text mode.
 #[inline]
 pub fn text_background(color: u8) {
@@ -556,7 +714,7 @@ pub fn text_background(color: u8) {
 }
 
 /// Moves the cursor to the specified position.
-/// 
+///
 /// Only works in text mode.
 #[inline]
 pub fn goto_xy(x: u16, y: u16) {
@@ -566,7 +724,7 @@ pub fn goto_xy(x: u16, y: u16) {
 }
 
 /// Gets the cursor's current X position.
-/// 
+///
 /// Returns 0 if the video is not in text mode.
 #[inline]
 pub fn where_x() -> u16 {
@@ -574,7 +732,7 @@ pub fn where_x() -> u16 {
 }
 
 /// Gets the cursor's current Y position.
-/// 
+///
 /// Returns 0 if the video is not in text mode.
 #[inline]
 pub fn where_y() -> u16 {
@@ -589,9 +747,9 @@ pub fn clr_scr() {
 }
 
 /// Enables the blinking text cursor.
-/// 
+///
 /// The cursor is visible to the user by default.
-/// 
+///
 /// Only works in text mode.
 #[inline]
 pub fn curs_on() {
@@ -601,7 +759,7 @@ pub fn curs_on() {
 }
 
 /// Hides the text cursor.
-/// 
+///
 /// Only works in text mode.
 #[inline]
 pub fn curs_off() {

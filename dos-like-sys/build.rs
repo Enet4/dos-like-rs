@@ -50,6 +50,10 @@ fn compile(source_path: &Path) -> PathBuf {
 fn compute_include_paths(fallback_path: impl AsRef<Path>) -> Vec<PathBuf> {
     let mut include_paths: Vec<_> = vec![];
 
+    if !cfg!(target_os = "linux") && !cfg!(target_os = "macos") {
+        return include_paths;
+    }
+
     if let Ok(include_path) = env::var("SDL2_INCLUDE_PATH") {
         include_paths.push(PathBuf::from(include_path));
     };
@@ -86,6 +90,10 @@ fn compute_include_paths(fallback_path: impl AsRef<Path>) -> Vec<PathBuf> {
 }
 
 fn link() {
+    if !(cfg!(target_os = "linux") || cfg!(target_os = "macos")) {
+        return;
+    }
+
     #[cfg(feature = "use-pkgconfig")]
     {
         // prints the appropriate linking parameters when using pkg-config
@@ -110,11 +118,12 @@ fn link() {
 
 #[cfg(feature = "use-pkgconfig")]
 fn get_pkg_config() {
-    let statik: bool = if cfg!(feature = "static-link") {
-        true
-    } else {
-        false
-    };
+    pkg_config_print(true, "sdl2");
+}
+
+#[cfg(feature = "use-vcpkg")]
+fn get_vcpkg_config() {
+    vcpkg::find_package("sdl2").unwrap();
 }
 
 #[cfg(feature = "use-pkgconfig")]

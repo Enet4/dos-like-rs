@@ -123,13 +123,13 @@ pub struct Soundbank(NonZeroU32);
 
 impl Soundbank {
     /// Default soundbank: Sound Blaster AWE32
-    pub const DEFAULT_SOUNDBANK_AWE32: Self = Soundbank(
+    pub const DEFAULT_AWE32: Self = Soundbank(
         // safety: definitely not 0
         unsafe { NonZeroU32::new_unchecked(dos_like_sys::DEFAULT_SOUNDBANK_AWE32) },
     );
 
     /// Default soundbank: Sound Blaster 16
-    pub const DEFAULT_SOUNDBANK_SB16: Self = Soundbank(
+    pub const DEFAULT_SB16: Self = Soundbank(
         // safety: definitely not 0
         unsafe { NonZeroU32::new_unchecked(dos_like_sys::DEFAULT_SOUNDBANK_SB16) },
     );

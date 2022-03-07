@@ -5,7 +5,11 @@
 
 #![no_main]
 
-use dos_like::{dos_like_sys::*, Music};
+use dos_like::{
+    curs_off, dos_like_sys::*, goto_xy, install_user_soundbank, key_state, load_wav, play_sound,
+    put_str, set_sound_mode, set_soundbank, shutting_down, stop_music, stop_sound, KeyCode, Music,
+    SoundMode, Soundbank,
+};
 
 #[no_mangle]
 pub extern "C" fn dosmain() -> i32 {
@@ -18,59 +22,59 @@ pub extern "C" fn dosmain() -> i32 {
             .expect("Could not load cfodder.mod");
         let opb = Music::load_opb("dos-like-sys/dos-like/files/sound/doom.opb")
             .expect("Could not load doom.opb");
-        let wav = loadwav("dos-like-sys/dos-like/files/sound/soundcard.wav\0".as_ptr() as *const _);
-        let doom_soundbank = installusersoundbank(
-            "dos-like-sys/dos-like/files/sound/doom.op2\0".as_ptr() as *const _,
-        );
+        let wav = load_wav("dos-like-sys/dos-like/files/sound/soundcard.wav")
+            .expect("Could not load soundcard.wav");
+        let doom_soundbank = install_user_soundbank("dos-like-sys/dos-like/files/sound/doom.op2")
+            .expect("Could not load doom.op2");
 
         let mut use_awe32 = true;
 
-        cputs("SOUND DEMO\0".as_ptr() as *const _);
-        gotoxy(0, 2);
-        cputs("1 - Play MIDI song\0".as_ptr() as *const _);
-        gotoxy(0, 3);
-        cputs("2 - Play MUS song\0".as_ptr() as *const _);
-        gotoxy(0, 4);
-        cputs("3 - Play MOD song\0".as_ptr() as *const _);
-        gotoxy(0, 5);
-        cputs("4 - Play WAV sound on channel 1\0".as_ptr() as *const _);
-        gotoxy(0, 6);
-        cputs("5 - Play WAV sound on channel 2\0".as_ptr() as *const _);
-        gotoxy(0, 7);
-        cputs("6 - Play WAV sound on channel 3\0".as_ptr() as *const _);
-        gotoxy(0, 8);
-        cputs("7 - Stop sound and music\0".as_ptr() as *const _);
-        gotoxy(0, 9);
-        cputs("8 - Sound mode 11khz 8bit mono (default)\0".as_ptr() as *const _);
-        gotoxy(0, 10);
-        cputs("9 - Sound mode 44khz 16bit stereo\0".as_ptr() as *const _);
-        gotoxy(0, 11);
-        cputs("0 - Sound mode 5khz 8bit mono\0".as_ptr() as *const _);
-        gotoxy(0, 12);
-        cputs("A - Use AWE32 for MIDI/MUS (default)\0".as_ptr() as *const _);
-        gotoxy(0, 13);
-        cputs("S - Use SoundBlaster16 for MIDI/MUS\0".as_ptr() as *const _);
-        gotoxy(0, 14);
-        cputs("O - Play OPB song\0".as_ptr() as *const _);
-        gotoxy(0, 16);
-        cputs("ESC - quit\0".as_ptr() as *const _);
-        cursoff();
-        while shuttingdown() == 0 {
+        put_str("SOUND DEMO");
+        goto_xy(0, 2);
+        put_str("1 - Play MIDI song");
+        goto_xy(0, 3);
+        put_str("2 - Play MUS song");
+        goto_xy(0, 4);
+        put_str("3 - Play MOD song");
+        goto_xy(0, 5);
+        put_str("4 - Play WAV sound on channel 1");
+        goto_xy(0, 6);
+        put_str("5 - Play WAV sound on channel 2");
+        goto_xy(0, 7);
+        put_str("6 - Play WAV sound on channel 3");
+        goto_xy(0, 8);
+        put_str("7 - Stop sound and music");
+        goto_xy(0, 9);
+        put_str("8 - Sound mode 11khz 8bit mono (default)");
+        goto_xy(0, 10);
+        put_str("9 - Sound mode 44khz 16bit stereo");
+        goto_xy(0, 11);
+        put_str("0 - Sound mode 5khz 8bit mono");
+        goto_xy(0, 12);
+        put_str("A - Use AWE32 for MIDI/MUS (default)");
+        goto_xy(0, 13);
+        put_str("S - Use SoundBlaster16 for MIDI/MUS");
+        goto_xy(0, 14);
+        put_str("O - Play OPB song");
+        goto_xy(0, 16);
+        put_str("ESC - quit");
+        curs_off();
+        while !shutting_down() {
             let key = *readchars() as u8;
             match key {
                 b'1' => {
                     if use_awe32 {
-                        setsoundbank(DEFAULT_SOUNDBANK_AWE32 as i32);
+                        set_soundbank(&Soundbank::DEFAULT_AWE32);
                     } else {
-                        setsoundbank(DEFAULT_SOUNDBANK_SB16 as i32);
+                        set_soundbank(&Soundbank::DEFAULT_SB16);
                     }
                     mid.play(false, 255);
                 }
                 b'2' => {
                     if use_awe32 {
-                        setsoundbank(DEFAULT_SOUNDBANK_AWE32 as i32);
+                        set_soundbank(&Soundbank::DEFAULT_AWE32);
                     } else {
-                        setsoundbank(doom_soundbank);
+                        set_soundbank(&doom_soundbank);
                     }
                     mus.play(false, 255);
                 }
@@ -81,44 +85,44 @@ pub extern "C" fn dosmain() -> i32 {
                     opb.play(false, 255);
                 }
                 b'4' => {
-                    playsound(0, wav, 0, 128);
+                    play_sound(0, &wav, false, 128);
                 }
                 b'5' => {
-                    playsound(1, wav, 0, 128);
+                    play_sound(1, &wav, false, 128);
                 }
                 b'6' => {
-                    playsound(2, wav, 0, 128);
+                    play_sound(2, &wav, false, 128);
                 }
                 b'7' => {
-                    stopmusic();
-                    stopsound(0);
-                    stopsound(1);
-                    stopsound(2);
+                    stop_music();
+                    stop_sound(0);
+                    stop_sound(1);
+                    stop_sound(2);
                 }
                 b'8' => {
-                    setsoundmode(soundmode_t_soundmode_8bit_mono_11025);
+                    set_sound_mode(SoundMode::Mono8bit11025);
                 }
                 b'9' => {
-                    setsoundmode(soundmode_t_soundmode_16bit_mono_44100);
+                    set_sound_mode(SoundMode::Mono16Bit44100);
                 }
                 b'0' => {
-                    setsoundmode(soundmode_t_soundmode_8bit_mono_5000);
+                    set_sound_mode(SoundMode::Mono8bit5000);
                 }
                 b'A' | b'a' => {
                     if !use_awe32 {
                         use_awe32 = true;
-                        stopmusic();
+                        stop_music();
                     }
                 }
                 b'S' | b's' => {
                     if use_awe32 {
                         use_awe32 = false;
-                        stopmusic();
+                        stop_music();
                     }
                 }
                 _ => {}
             }
-            if keystate(keycode_t_KEY_ESCAPE) != 0 {
+            if key_state(KeyCode::KEY_ESCAPE) {
                 break;
             }
         }

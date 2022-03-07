@@ -3,52 +3,55 @@
 // See end of file for license
 #![no_main]
 
-use dos_like::dos_like_sys::*;
+use dos_like::{
+    screen_buffer, set_double_buffer, set_video_mode, shutting_down, swap_buffers,
+    wait_vbl, VideoMode, set_pal, KeyCode, key_state,
+};
 use std::os::raw::c_int;
 
 dos_like::dos_main! {
     // Y-coordinate first because we use horizontal scanlines
     let mut plasma = [[0 as c_int; 320]; 200];
 
-    unsafe {
-        setvideomode(videomode_t_videomode_320x200);
-        setdoublebuffer(1);
-        let w = 320;
-        let h = 200;
-
-        //generate the palette
-        for x in 0..256 {
-            let r = (128. + 128. * (x as f64 * 3.1415 / 32.).sin()) as c_int;
-            let g = (128. + 128. * (x as f64 * 3.1415 / 64.).sin()) as c_int;
-            let b = (128. + 128. * (x as f64 * 3.1415 / 128.).sin()) as c_int;
-            setpal(x, r >> 2, g >> 2, b >> 2);
-        }
-
-        //generate the plasma once
-        for y in 0..h {
-            for x in 0..w {
-                //the plasma buffer is a sum of sines
-                let color = (128.0
-                    + (128.0 * (x as f32 / 32.).sin())
-                    + 128.0
-                    + (128.0 * (y as f32 / 16.).sin())
-                    + 128.0
-                    + (128.0 * ((x as f32 + y as f32) / 32.).sin())
-                    + 128.0
-                    + (128.0 * (x * x + y * y) as f64 / 16.).sqrt().sin() as f32)
-                    as c_int
-                    / 4;
+    set_video_mode(VideoMode::Graphics320x200);
+    set_double_buffer(true);
+    let w = 320;
+    let h = 200;
+    
+    //generate the palette
+    for x in 0..256 {
+        let r = (128. + 128. * (x as f64 * 3.1415 / 32.).sin()) as u8;
+        let g = (128. + 128. * (x as f64 * 3.1415 / 64.).sin()) as u8;
+        let b = (128. + 128. * (x as f64 * 3.1415 / 128.).sin()) as u8;
+        set_pal(x, r >> 2, g >> 2, b >> 2);
+    }
+        
+    //generate the plasma once
+    for y in 0..h {
+        for x in 0..w {
+            //the plasma buffer is a sum of sines
+            let color = (128.0
+                + (128.0 * (x as f32 / 32.).sin())
+                + 128.0
+                + (128.0 * (y as f32 / 16.).sin())
+                + 128.0
+                + (128.0 * ((x as f32 + y as f32) / 32.).sin())
+                + 128.0
+                + (128.0 * (x * x + y * y) as f64 / 16.).sqrt().sin() as f32)
+                as c_int
+                / 4;
                 plasma[y][x] = color;
-            }
         }
-
-        let mut palette_shift = 0;
-
-        let mut buffer = screenbuffer();
+    }
+            
+    let mut palette_shift = 0;
+    
+    unsafe {
+        let mut buffer = screen_buffer();
 
         //start the animation loop, it rotates the palette
-        while shuttingdown() == 0 {
-            waitvbl();
+        while !shutting_down() {
+            wait_vbl();
 
             //the parameter to shift the palette varies with time
             palette_shift += 1;
@@ -56,16 +59,14 @@ dos_like::dos_main! {
             //draw every pixel again, with the shifted palette color
             for y in 0..h {
                 for x in 0..w {
-                    buffer
-                        .offset((x + y * 320) as isize)
-                        .write((plasma[y][x] + palette_shift) as u8);
+                    buffer[x + y * 320] = (plasma[y][x] + palette_shift) as u8;
                 }
             }
 
             //make everything visible
-            buffer = swapbuffers();
+            buffer = swap_buffers();
 
-            if keystate(keycode_t_KEY_ESCAPE) != 0 {
+            if key_state(KeyCode::KEY_ESCAPE) {
                 break;
             }
         }

@@ -6,36 +6,37 @@
 #![no_main]
 
 use dos_like::{
-    dos_like_sys::*, dos_main, load_gif, set_double_buffer, set_pal, set_video_mode, shutting_down,
-    wait_vbl, VideoMode,
+    dos_main, key_state, load_gif, screen_buffer, set_double_buffer, set_pal, set_video_mode,
+    shutting_down, swap_buffers, wait_vbl, KeyCode, VideoMode,
 };
 use std::f32::consts::PI;
 
 dos_main! {
+    set_video_mode(VideoMode::Graphics320x200);
+    set_double_buffer(true);
+    let gif = load_gif("assets/rotozoom.gif").unwrap_or_else(|_| {
+        eprintln!("Could not load rotozoom.gif");
+        std::process::exit(-2);
+    });
+
+
+    let palette = gif.raw_palette();
+    let palcount = gif.palette_count();
+    let gif_width = gif.width() as i32;
+    let gif_height = gif.height() as i32;
+    let gif_data = gif.data();
+
+    for i in 0..palcount as usize {
+        set_pal(
+            i,
+            palette[3 * i + 0],
+            palette[3 * i + 1],
+            palette[3 * i + 2],
+        );
+    }
+
     unsafe {
-        set_video_mode(VideoMode::Graphics320x200);
-        set_double_buffer(true);
-
-        let gif = load_gif("assets/rotozoom.gif").unwrap_or_else(|_| {
-            eprintln!("Could not load rotozoom.gif");
-            std::process::exit(-2);
-        });
-        let palette = gif.raw_palette();
-        let palcount = gif.palette_count();
-        let gif_width = gif.width() as i32;
-        let gif_height = gif.height() as i32;
-        let gif_data = gif.data();
-
-        for i in 0..palcount as usize {
-            set_pal(
-                i,
-                palette[3 * i + 0],
-                palette[3 * i + 1],
-                palette[3 * i + 2],
-            );
-        }
-
-        let mut buffer = screenbuffer();
+        let mut buffer = screen_buffer();
         let mut angle = 0.;
         while !shutting_down() {
             wait_vbl();
@@ -56,13 +57,13 @@ dos_main! {
                         v += gif_height;
                     }
                     let src_ofs = u + v * gif_width;
-                    buffer.offset(dest_ofs as isize).write(gif_data[src_ofs as usize]);
+                    buffer[dest_ofs] = gif_data[src_ofs as usize];
                     dest_ofs += 1;
                 }
             }
-            buffer = swapbuffers();
+            buffer = swap_buffers();
 
-            if keystate(keycode_t_KEY_ESCAPE) != 0 {
+            if key_state(KeyCode::KEY_ESCAPE) {
                 break;
             }
         }

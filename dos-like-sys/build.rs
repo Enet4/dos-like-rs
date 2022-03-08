@@ -8,6 +8,7 @@ fn main() {
     init_submodule(doslike_path);
 
     println!("cargo:rerun-if-changed=dos-like/source/dos.c");
+    println!("cargo:rerun-if-changed=dos-like/source/dos.h");
 
     let compiled_lib_path = compile(doslike_path);
 
@@ -42,15 +43,29 @@ fn compile(source_path: &Path) -> PathBuf {
     if cfg!(feature = "disable-screen-frame") {
         build.define("DISABLE_SCREEN_FRAME", "1");
     }
+
+    if cfg!(target_arch = "wasm32") {
+        build.define("__wasm__", "1");
+    }
+
     build.compile("dos-like");
 
     PathBuf::from("dos-like")
 }
 
 fn compute_include_paths(fallback_path: impl AsRef<Path>) -> Vec<PathBuf> {
-    let mut include_paths: Vec<_> = vec![];
+    let mut include_paths = vec![];
 
-    if !cfg!(target_os = "linux") && !cfg!(target_os = "macos") {
+    let target_arch = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
+    let target_os = std::env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();
+    let host = std::env::var("HOST").unwrap_or_default();
+    let host_os = host.split('-').nth(2).unwrap_or_default();
+
+    if target_arch == "wasm32" && host_os == "linux" {
+        include_paths.push(PathBuf::from("/usr/include"));
+    }
+
+    if !(target_os == "linux" || target_os == "macos") {
         return include_paths;
     }
 

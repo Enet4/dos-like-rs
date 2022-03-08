@@ -1,17 +1,72 @@
 //! Module for keyboard and mouse input functions.
 
 use dos_like_sys::keycode_t;
+use smallvec::SmallVec;
 
 /// A key code object.
 ///
 /// See the various associated constants for specific keys.
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, Eq, Hash, PartialEq)]
 #[repr(transparent)]
 pub struct KeyCode(keycode_t);
+
+impl From<KeyCode> for u32 {
+    fn from(key: KeyCode) -> u32 {
+        key.0 as u32
+    }
+}
 
 /// Checks whether a key is currently pushed (down).
 pub fn key_state(key: KeyCode) -> bool {
     unsafe { dos_like_sys::keystate(key.0) != 0 }
+}
+
+/// Reads the key press events available
+/// and saves them in an array.
+///
+/// This creates an independent copy of the keys,
+/// consuming the underlying buffer in the process.
+pub fn read_keys() -> SmallVec<[KeyCode; 2]> {
+    let mut keys = SmallVec::new();
+
+    // Safety: readkeys is a valid pointer
+    // to a null terminated sequence of keycode_t
+    unsafe {
+        let p = dos_like_sys::readkeys();
+        for i in 0..=255 {
+            let c = *p.offset(i);
+            if c == 0 {
+                break;
+            }
+            keys.push(KeyCode(c));
+        }
+    }
+
+    keys
+}
+
+/// Reads the character input events available
+/// and saves them in an array.
+///
+/// This creates an independent copy of the characters,
+/// consuming the underlying buffer in the process.
+pub fn read_chars() -> SmallVec<[u8; 4]> {
+    let mut keys = SmallVec::new();
+
+    // Safety: readchars is a valid pointer
+    // to a null terminated sequence of bytes
+    unsafe {
+        let p = dos_like_sys::readchars();
+        for i in 0..=255 {
+            let c = *p.offset(i);
+            if c == 0 {
+                break;
+            }
+            keys.push(c as u8);
+        }
+    }
+
+    keys
 }
 
 /// Gets the absolute mouse position on the X axis.

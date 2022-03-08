@@ -667,7 +667,7 @@ pub fn set_text_style(font: Font, bold: bool, italic: bool, underline: bool) {
 ///
 /// This is equivalent to creating a [`CString`](std::ffi::CString)
 /// (so that it is null terminated)
-/// and calling [`c_puts`].
+/// and calling [`put_cstr`].
 ///
 /// # Panics
 ///

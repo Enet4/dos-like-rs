@@ -42,6 +42,22 @@ which are based on the original `dos-like` examples.
 A C compiler needs to be available (uses [`cc`](https://crates.io/crates/cc)).
 The dos-like framework is statically linked,
 just like in a C program.
+
+Since the initiator is based on routines in C,
+this also means that panic unwinding will not work,
+so it is best to configure your project to abort on [panic].
+In your Cargo.toml:
+
+```toml
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+```
+
+[panic]: https://doc.rust-lang.org/cargo/reference/profiles.html#panic
+
 Check out the [`dos-like` README][2] for additional requirements.
 
 [2]: https://github.com/mattiasgustavsson/dos-like#readme

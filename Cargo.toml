@@ -19,3 +19,11 @@ lazy_static = "1.4.0"
 
 default = []
 disable-screen-frame = ["dos-like-sys/disable-screen-frame"]
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+lto = "thin"
+strip = "debuginfo"

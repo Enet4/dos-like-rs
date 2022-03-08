@@ -5,7 +5,7 @@ use std::process::Command;
 fn main() {
     let doslike_path = Path::new("dos-like");
 
-    init_submodule(&doslike_path);
+    init_submodule(doslike_path);
 
     println!("cargo:rerun-if-changed=dos-like/source/dos.c");
 
@@ -20,7 +20,7 @@ fn init_submodule(doslike_path: &Path) {
     if !doslike_path.join("source").exists() {
         Command::new("git")
             .args(&["submodule", "update", "--init"])
-            .current_dir(doslike_path.clone())
+            .current_dir(doslike_path)
             .status()
             .expect("Git is needed to retrieve the dos-like source files");
     }

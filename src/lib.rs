@@ -5,8 +5,8 @@
 //! [1]: https://github.com/mattiasgustavsson/dos-like
 //!
 //! This API was designed to expose the original C API
-//! while maintaining Rust's idiomatic constructs and safety guarantees.
-//! However, some functions in the framework
+//! while maintaining Rust's idiomatic naming and safety guarantees.
+//! Note however, that some functions in the framework
 //! cannot be made completely memory safe
 //! without introducing runtime overhead.
 //! In any case, should you find it useful,
@@ -55,6 +55,13 @@
 //! [profile.release]
 //! panic = "abort"
 //! ```
+//! 
+//! ## Cargo features
+//!
+//! - **`disable-screen-frame`**:
+//!   when enabled, compiles `dos-like` so that
+//!   the CRT screen frame around the viewport does not appear.
+//!   The other CRT screen effects will remain.
 #![allow(clippy::too_many_arguments)]
 
 pub mod input;
@@ -79,6 +86,17 @@ pub fn wait_vbl() {
 }
 
 /// Checks whether the application should shut down.
+/// 
+/// # Example
+/// 
+/// A typical application loop inside `dosmain` would look like this:
+/// 
+/// ```no_run
+/// # use dos_like::shutting_down;
+/// while !shutting_down() {
+///     // your code here
+/// }
+/// ```
 pub fn shutting_down() -> bool {
     unsafe { dos_like_sys::shuttingdown() != 0 }
 }
@@ -139,6 +157,3 @@ macro_rules! dos_main {
         }
     };
 }
-
-#[cfg(test)]
-mod tests {}

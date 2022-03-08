@@ -70,7 +70,7 @@ impl Music {
     /// Creates a music object from the byte data of a MUS file.
     pub fn create_mus(data: &[u8]) -> Music {
         // safety: although pointer type is *mut void_t,
-        // the data is never written via the pointer.
+        // no data is never written via the pointer.
         unsafe {
             let music = dos_like_sys::createmus(data.as_ptr() as *mut _, data.len() as c_int);
             Music(music)

@@ -40,6 +40,19 @@
 //!     // your code here
 //! }
 //! ```
+//! 
+//! Moreover, since the initiator is based on routines in C,
+//! this also means that panic unwinding will not work,
+//! so it is best to configure your project to abort on panic.
+//! Add this to your Cargo.toml and any other custom profile:
+//! 
+//! ```toml
+//! [profile.dev]
+//! panic = "abort"
+//! 
+//! [profile.release]
+//! panic = "abort"
+//! ```
 
 pub mod input;
 pub mod music;

@@ -1,4 +1,5 @@
-//! Video module
+//! Module for video related operations,
+//! including graphics and text output.
 
 use std::{
     ffi::{CStr, CString},
@@ -572,6 +573,111 @@ pub fn center_text_xy(x: u16, y: u16, text: impl AsRef<[u8]>, width: u16) {
             text.as_ptr() as *const _,
             width as c_int,
         );
+    }
+}
+
+// -- Image reading
+
+/// An image loaded from a file.
+#[derive(Debug)]
+pub struct Image {
+    /// The color palette of the image.
+    palette: [u8; 768],
+    /// The real size of the palette
+    palette_count: u32,
+    /// The width of the image.
+    width: u32,
+    /// The height of the image.
+    height: u32,
+    /// Pointer to the indexed pixel data.
+    data: *mut u8,
+}
+
+unsafe impl Send for Image {}
+unsafe impl Sync for Image {}
+
+impl Image {
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+
+    pub fn height(&self) -> u32 {
+        self.height
+    }
+
+    /// Gets the image data as a slice of bytes,
+    /// each byte representing a pixel indexed by the image's palette.
+    pub fn data(&self) -> &[u8] {
+        unsafe { std::slice::from_raw_parts(self.data, self.width as usize * self.height as usize) }
+    }
+
+    /// Gets the image data as a mutable slice of bytes,
+    /// each byte representing a pixel indexed by the image's palette.
+    pub fn data_mut(&self) -> &mut [u8] {
+        unsafe {
+            std::slice::from_raw_parts_mut(self.data, self.width as usize * self.height as usize)
+        }
+    }
+
+    /// Gets the number of pixel colors in the palette.
+    /// The full size of the palette is `palette_count * 3` bytes.
+    pub fn palette_count(&self) -> u32 {
+        self.palette_count
+    }
+
+    /// Gets the image's color palette as a slice of bytes, in RGB
+    /// (8 bits per channel).
+    pub fn palette(&self) -> &[u8] {
+        &self.palette[..self.palette_count as usize * 3]
+    }
+
+    /// Gets the image's color palette as a mutable slice of bytes, in RGB
+    /// (8 bits per channel).
+    pub fn palette_mut(&mut self) -> &mut [u8] {
+        &mut self.palette[..self.palette_count as usize]
+    }
+
+    /// Gets the image's color palette as a reference to the underlying array,
+    /// in RGB (8 bits per channel).
+    ///
+    /// The maximum expected size of any palette is 768 bytes
+    /// (256 colors * 3 bytes per color).
+    /// Note that the real palette used might be smaller than
+    /// the full size of the array,
+    /// see [`palette`][self::Image::palette] for an accurate slice.
+    pub fn raw_palette(&self) -> &[u8; 768] {
+        &self.palette
+    }
+}
+
+/// Loads an image from a GIF file.
+pub fn load_gif(path: impl AsRef<str>) -> Result<Image, FileError> {
+    let filename = CString::new(path.as_ref()).map_err(|_| FileError::BadFilePath)?;
+    let mut width = 0;
+    let mut height = 0;
+    let mut palcount = 0;
+    let mut palette = [0; 768];
+
+    unsafe {
+        let data = dos_like_sys::loadgif(
+            filename.as_ptr(),
+            &mut width,
+            &mut height,
+            &mut palcount,
+            palette.as_mut_ptr(),
+        );
+
+        if data.is_null() {
+            return Err(FileError::FileNotFound);
+        }
+
+        Ok(Image {
+            width: width as u32,
+            height: height as u32,
+            palette_count: palcount as u32,
+            palette,
+            data,
+        })
     }
 }
 

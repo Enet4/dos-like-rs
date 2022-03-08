@@ -101,6 +101,9 @@ impl Sound {
     }
 
     /// Creates a new sound from a buffer.
+    /// 
+    /// Note that this copies the samples internally,
+    /// so there is effectively no lifetime dependency with the buffer.
     #[inline]
     pub fn create_sound(channels: u32, sample_rate: u32, samples: &[u16]) -> Sound {
         create_sound(channels, sample_rate, samples)
@@ -115,6 +118,7 @@ impl Sound {
 
 unsafe impl Send for Sound {}
 
+/// Loads a new sound from a file.
 pub fn load_wav(path: impl AsRef<str>) -> Result<Sound, FileError> {
     let path = CString::new(path.as_ref()).map_err(|_| FileError::BadFilePath)?;
     let p = unsafe { dos_like_sys::loadwav(path.as_ptr() as *const i8) };
@@ -125,6 +129,7 @@ pub fn load_wav(path: impl AsRef<str>) -> Result<Sound, FileError> {
     }
 }
 
+/// Creates a new sound from a buffer.
 pub fn create_sound(channels: u32, sample_rate: u32, samples: &[u16]) -> Sound {
     // safety: although we're passing a *mut,
     // nothing is ever written to samples

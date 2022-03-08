@@ -158,12 +158,14 @@ pub fn pal(index: usize) -> (u8, u8, u8) {
 ///
 /// # Safety
 ///
-/// It is unsafe because access to the screen is not guaranteed to be exclusive.
-/// Calling _any function_ that blits _anything_ to the screen
+/// It is not guaranteed by the compiler
+/// that the access to the screen buffer is exclusive.
+/// Calling any function in this module that draws _anything_ to the screen
 /// during the returned slice's lifetime
 /// is _undefined behavior_.
 /// It is also undefined behavior to call this function multiple times
 /// without dropping the previous slices first.
+///
 /// However, if _double buffering_ is enabled
 /// (via [`set_double_buffer`]),
 /// then it is safe to call [`swap_buffers`]
@@ -187,19 +189,20 @@ pub unsafe fn screen_buffer() -> &'static mut [u8] {
 ///
 /// # Safety
 ///
-/// It is unsafe because access to the screen is not guaranteed to be exclusive.
-/// Calling _any function_ that blits _anything_ to the screen
+/// It is not guaranteed by the compiler
+/// that the access to the screen buffer is exclusive.
+/// Calling any function in this module that draws _anything_ to the screen
 /// during the returned slice's lifetime
 /// is _undefined behavior_.
 ///
 /// Moreover, if _double buffering_ is disabled,
 /// any buffer slice obtained through this function or [`screen_buffer`]
-/// _must_ be dropped before calling this one.
+/// must be dropped _before_ this call.
 /// That is,
 /// it is only safe to call `swap_buffers` with an existing buffer slice
 /// if double buffering is enabled
 /// (via [`set_double_buffer`]).
-/// and the other slice is immediately dropped.
+/// and the other slice is immediately dropped afterwards.
 ///
 /// # Example
 ///
@@ -290,7 +293,7 @@ pub fn blit(
 }
 
 /// Blits a masked rectangular portion of a video data buffer to the screen,
-/// skipping pixels that are stated to be fully transparent.
+/// skipping pixels encoded as fully transparent.
 ///
 /// - `x` and `y` are the target coordinates of the top-left corner
 ///   to blit on the screen

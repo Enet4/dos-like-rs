@@ -4,8 +4,8 @@
 #![no_main]
 
 use dos_like::{
-    screen_buffer, set_double_buffer, set_video_mode, shutting_down, swap_buffers,
-    wait_vbl, VideoMode, set_pal, KeyCode, key_state,
+    key_state, screen_buffer, set_double_buffer, set_pal, set_video_mode, shutting_down,
+    swap_buffers, wait_vbl, KeyCode, VideoMode,
 };
 use std::os::raw::c_int;
 
@@ -17,7 +17,7 @@ dos_like::dos_main! {
     set_double_buffer(true);
     let w = 320;
     let h = 200;
-    
+
     //generate the palette
     for x in 0..256 {
         let r = (128. + 128. * (x as f64 * 3.1415 / 32.).sin()) as u8;
@@ -25,7 +25,7 @@ dos_like::dos_main! {
         let b = (128. + 128. * (x as f64 * 3.1415 / 128.).sin()) as u8;
         set_pal(x, r >> 2, g >> 2, b >> 2);
     }
-        
+
     //generate the plasma once
     for y in 0..h {
         for x in 0..w {
@@ -43,9 +43,9 @@ dos_like::dos_main! {
                 plasma[y][x] = color;
         }
     }
-            
+
     let mut palette_shift = 0;
-    
+
     unsafe {
         let mut buffer = screen_buffer();
 

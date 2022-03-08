@@ -104,7 +104,7 @@ impl Sound {
     }
 
     /// Creates a new sound from a buffer.
-    /// 
+    ///
     /// Note that this copies the samples internally,
     /// so there is effectively no lifetime dependency with the buffer.
     #[inline]

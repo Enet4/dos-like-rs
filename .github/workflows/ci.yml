@@ -10,7 +10,8 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+
+  build-linux:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -27,3 +28,38 @@ jobs:
       run: cargo test --verbose
     - name: Build examples
       run: cargo build --example rotozoom --example plasma --example sound 
+
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - beta
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: cargo build --verbose
+    - name: Run tests
+      run: cargo test --verbose
+    - name: Build examples
+      run: cargo build --example rotozoom --example plasma --example sound 
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - stable
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - run: rustup component add clippy
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy

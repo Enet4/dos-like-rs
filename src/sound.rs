@@ -11,6 +11,9 @@ use dos_like_sys::sound_t;
 
 use crate::FileError;
 
+/// The total number of sound channels supported by the engine.
+pub const SOUND_CHANNELS: u32 = dos_like_sys::SOUND_CHANNELS;
+
 /// A sound mode.
 ///
 /// This type maps each variant

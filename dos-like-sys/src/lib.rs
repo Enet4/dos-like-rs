@@ -16,7 +16,7 @@
 //! the main source file needs the `no_main` attribute
 //! and to define an extern C function `dosmain` instead.
 //! 
-//! ```rust
+//! ```no_run
 //! #![no_main]
 //!
 //! #[no_mangle]

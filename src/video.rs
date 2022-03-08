@@ -616,7 +616,7 @@ impl Image {
 
     /// Gets the image data as a mutable slice of bytes,
     /// each byte representing a pixel indexed by the image's palette.
-    pub fn data_mut(&self) -> &mut [u8] {
+    pub fn data_mut(&mut self) -> &mut [u8] {
         unsafe {
             std::slice::from_raw_parts_mut(self.data, self.width as usize * self.height as usize)
         }

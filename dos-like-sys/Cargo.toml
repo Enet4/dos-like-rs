@@ -9,6 +9,14 @@ categories = ["external-ffi-bindings", "game-development", "graphics"]
 readme = "README.md"
 license-file = "LICENSE.md"
 edition = "2021"
+exclude = [
+    "dos-like/dos-like.jpg",
+    "dos-like/build_all.bat",
+    "dos-like/build_all_linux.sh",
+    "dos-like/build_all_macos.sh",
+    "dos-like/build_all_wasm.bat",
+    "dos-like/files",
+]
 
 [dependencies]
 

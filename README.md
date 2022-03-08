@@ -67,12 +67,18 @@ Check out the [`dos-like` README][2] for additional requirements.
 - `disable-screen-frame` compiles `dos-like` so that
 the CRT screen frame around the viewport does not appear.
 
+## Platform support
+
+These bindings have been tested on Linux and Windows.
+WebAssembly and Mac OS support is currently not guaranteed
+(but your assistance on this would be greatly appreciated!).
+
 ## Building
 
 When working on this project,
 ensure that the git submodule in `dos-like-sys/dos-like` was populated
 (either by cloning with `--recurse-submodules`
-or by calling `git submodules update --init`).
+or by calling `git submodule update --init`).
 Some of the examples do not work unless with this submodule checked out.
 
 ## License and attribution notice

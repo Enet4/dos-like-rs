@@ -66,8 +66,6 @@ pub use music::*;
 pub use sound::*;
 pub use video::*;
 
-use std::ffi::CString;
-
 pub use dos_like_sys;
 
 /// Calls `waitvbl`, which waits for a vertical blanking signal.

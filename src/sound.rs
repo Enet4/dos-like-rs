@@ -16,7 +16,7 @@ use crate::FileError;
 /// This type maps each variant
 /// to the `soundmode_t` enum in the original framework,
 /// with idiomatic naming.
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, Hash, PartialEq)]
 #[repr(u32)]
 pub enum SoundMode {
     /// 8-bit mono, 5000 Hz

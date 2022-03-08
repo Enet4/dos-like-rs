@@ -9,7 +9,7 @@ use std::{
 use crate::FileError;
 
 /// A simple descriptor for whether a video mode is in text or graphics mode.
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 pub enum VideoModeKind {
     /// Text mode, where each cell is a character or glyph.
     /// and the resolution is defined via cell matrix and font size.
@@ -23,7 +23,7 @@ pub enum VideoModeKind {
 ///
 /// This type maps to the `videomode_t` struct in the original framework.
 /// Each variant is either in text mode or graphics mode.
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 #[repr(u32)]
 pub enum VideoMode {
     /// Text mode, 40 columns and 25 rows, 8x8 font size.
@@ -581,7 +581,7 @@ pub fn center_text_xy(x: u16, y: u16, text: impl AsRef<[u8]>, width: u16) {
 ///
 /// Use [`install_user_font`] to obtain a font,
 /// or take one of the associated constants for the default fonts.
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 #[repr(transparent)]
 pub struct Font(NonZeroU32);
 

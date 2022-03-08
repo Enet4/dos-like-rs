@@ -117,7 +117,7 @@ pub fn set_music_volume(volume: u8) {
 ///
 /// Use [`install_user_soundbank`] to obtain a font,
 /// or take one of the associated constants for the default soundbanks.
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, Hash, PartialEq)]
 #[repr(transparent)]
 pub struct Soundbank(NonZeroU32);
 

@@ -487,7 +487,7 @@ pub fn fill_ellipse(x: u16, y: u16, rx: u16, ry: u16) {
 /// Panics if the given list of points is empty or not even.
 #[inline]
 pub fn draw_poly(points: &[u16]) {
-    assert!(points.len() > 0 && points.len() % 2 == 0);
+    assert!(!points.is_empty() && points.len() % 2 == 0);
 
     // Safety: although the pointer type is *mut,
     // it never really writes via the pointer.
@@ -506,7 +506,7 @@ pub fn draw_poly(points: &[u16]) {
 /// Panics if the given list of points is empty or not even.
 #[inline]
 pub fn fill_poly(points: &[u16]) {
-    assert!(points.len() > 0 && points.len() % 2 == 0);
+    assert!(!points.is_empty() && points.len() % 2 == 0);
 
     // Safety: although the pointer type is *mut,
     // it never really writes via the pointer.

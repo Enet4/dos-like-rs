@@ -55,6 +55,7 @@
 //! [profile.release]
 //! panic = "abort"
 //! ```
+#![allow(clippy::too_many_arguments)]
 
 pub mod input;
 pub mod music;

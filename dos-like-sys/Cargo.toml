@@ -16,6 +16,7 @@ exclude = [
     "dos-like/build_all_macos.sh",
     "dos-like/build_all_wasm.bat",
     "dos-like/files",
+    "dos-like/tcc",
 ]
 
 [dependencies]

@@ -3,6 +3,11 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 fn main() {
+    if let Ok(_) = std::env::var("DOCS_RS") {
+        // Do not try to build anything when generating docs
+        return;
+    }
+
     let doslike_path = Path::new("dos-like");
 
     init_submodule(doslike_path);

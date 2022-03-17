@@ -107,6 +107,15 @@ impl Sound {
     ///
     /// Note that this copies the samples internally,
     /// so there is effectively no lifetime dependency with the buffer.
+    /// 
+    /// Only 1 or 2 channels are supported.
+    /// The sample rate is a number in Hz,
+    /// between 1000 and 44100.
+    /// The number of samples should also not be zero.
+    /// 
+    /// # Panic
+    /// 
+    /// Panics if the given parameters are invalid for a sound.
     #[inline]
     pub fn create_sound(channels: u32, sample_rate: u32, samples: &[u16]) -> Sound {
         create_sound(channels, sample_rate, samples)
@@ -131,18 +140,44 @@ pub fn load_wav(path: impl AsRef<str>) -> Result<Sound, FileError> {
         Ok(Sound(p))
     }
 }
-
 /// Creates a new sound from a buffer.
+/// 
+/// Only 1 or 2 channels are supported.
+/// The sample rate is a number in Hz,
+/// between 1000 and 44100.
+/// The number of samples should also not be zero.
+/// 
+/// # Panic
+/// 
+/// Panics if the given parameters are invalid for a sound.
+#[inline]
 pub fn create_sound(channels: u32, sample_rate: u32, samples: &[u16]) -> Sound {
+    try_create_sound(channels, sample_rate, samples)
+        .expect("Invalid sound parameters")
+}
+
+/// Creates a new sound from a buffer,
+/// returning `None` if the given parameters are invalid for a sound.
+/// 
+/// Only 1 or 2 channels are supported.
+/// The sample rate is a number in Hz,
+/// between 1000 and 44100.
+/// The number of samples should also not be zero.
+pub fn try_create_sound(channels: u32, sample_rate: u32, samples: &[u16]) -> Option<Sound> {
     // safety: although we're passing a *mut,
     // nothing is ever written to samples
     unsafe {
-        Sound(dos_like_sys::createsound(
+        let sound = dos_like_sys::createsound(
             channels as c_int,
             sample_rate as c_int,
             samples.len() as c_int,
             samples.as_ptr() as *mut c_short,
-        ))
+        );
+        if sound.is_null() {
+            None
+        } else {
+            Some(Sound(sound))
+        }
     }
 }
 

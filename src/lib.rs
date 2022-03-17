@@ -55,7 +55,7 @@
 //! [profile.release]
 //! panic = "abort"
 //! ```
-//! 
+//!
 //! ## Cargo features
 //!
 //! - **`disable-screen-frame`**:
@@ -86,11 +86,11 @@ pub fn wait_vbl() {
 }
 
 /// Checks whether the application should shut down.
-/// 
+///
 /// # Example
-/// 
+///
 /// A typical application loop inside `dosmain` would look like this:
-/// 
+///
 /// ```no_run
 /// # use dos_like::shutting_down;
 /// while !shutting_down() {

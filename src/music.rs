@@ -72,9 +72,9 @@ impl Music {
     }
 
     /// Creates a music object from the byte data of a MUS file.
-    /// 
+    ///
     /// # Panic
-    /// 
+    ///
     /// This function panics if the data is not a valid MUS file.
     /// See [`Music::try_create_mus`] to handle this gracefully.
     #[inline]

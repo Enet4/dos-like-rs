@@ -4,7 +4,8 @@
 
 use std::{
     ffi::CString,
-    os::raw::{c_int, c_short, c_uint}, ptr::NonNull,
+    os::raw::{c_int, c_short, c_uint},
+    ptr::NonNull,
 };
 
 use dos_like_sys::sound_t;
@@ -107,14 +108,14 @@ impl Sound {
     ///
     /// Note that this copies the samples internally,
     /// so there is effectively no lifetime dependency with the buffer.
-    /// 
+    ///
     /// Only 1 or 2 channels are supported.
     /// The sample rate is a number in Hz,
     /// between 1000 and 44100.
     /// The number of samples should also not be zero.
-    /// 
+    ///
     /// # Panic
-    /// 
+    ///
     /// Panics if the given parameters are invalid for a sound.
     #[inline]
     pub fn create_sound(channels: u32, sample_rate: u32, samples: &[u16]) -> Sound {
@@ -141,24 +142,23 @@ pub fn load_wav(path: impl AsRef<str>) -> Result<Sound, FileError> {
     }
 }
 /// Creates a new sound from a buffer.
-/// 
+///
 /// Only 1 or 2 channels are supported.
 /// The sample rate is a number in Hz,
 /// between 1000 and 44100.
 /// The number of samples should also not be zero.
-/// 
+///
 /// # Panic
-/// 
+///
 /// Panics if the given parameters are invalid for a sound.
 #[inline]
 pub fn create_sound(channels: u32, sample_rate: u32, samples: &[u16]) -> Sound {
-    try_create_sound(channels, sample_rate, samples)
-        .expect("Invalid sound parameters")
+    try_create_sound(channels, sample_rate, samples).expect("Invalid sound parameters")
 }
 
 /// Creates a new sound from a buffer,
 /// returning `None` if the given parameters are invalid for a sound.
-/// 
+///
 /// Only 1 or 2 channels are supported.
 /// The sample rate is a number in Hz,
 /// between 1000 and 44100.
@@ -184,7 +184,12 @@ pub fn try_create_sound(channels: u32, sample_rate: u32, samples: &[u16]) -> Opt
 /// Plays the sound specified.
 pub fn play_sound(channel: u8, sound: &Sound, loop_: bool, volume: u8) {
     unsafe {
-        dos_like_sys::playsound(channel as c_int, sound.0.as_ptr(), loop_ as c_int, volume as c_int);
+        dos_like_sys::playsound(
+            channel as c_int,
+            sound.0.as_ptr(),
+            loop_ as c_int,
+            volume as c_int,
+        );
     }
 }
 

@@ -4,7 +4,8 @@
 use std::{
     ffi::{CStr, CString},
     num::NonZeroU32,
-    os::raw::{c_int, c_uint}, ptr::NonNull,
+    os::raw::{c_int, c_uint},
+    ptr::NonNull,
 };
 
 use crate::FileError;
@@ -611,14 +612,22 @@ impl Image {
     /// Gets the image data as a slice of bytes,
     /// each byte representing a pixel indexed by the image's palette.
     pub fn data(&self) -> &[u8] {
-        unsafe { std::slice::from_raw_parts(self.data.as_ptr(), self.width as usize * self.height as usize) }
+        unsafe {
+            std::slice::from_raw_parts(
+                self.data.as_ptr(),
+                self.width as usize * self.height as usize,
+            )
+        }
     }
 
     /// Gets the image data as a mutable slice of bytes,
     /// each byte representing a pixel indexed by the image's palette.
     pub fn data_mut(&mut self) -> &mut [u8] {
         unsafe {
-            std::slice::from_raw_parts_mut(self.data.as_ptr(), self.width as usize * self.height as usize)
+            std::slice::from_raw_parts_mut(
+                self.data.as_ptr(),
+                self.width as usize * self.height as usize,
+            )
         }
     }
 

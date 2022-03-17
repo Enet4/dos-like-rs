@@ -68,12 +68,28 @@ impl Music {
     }
 
     /// Creates a music object from the byte data of a MUS file.
+    /// 
+    /// # Panic
+    /// 
+    /// This function panics if the data is not a valid MUS file.
+    /// See [`Music::try_create_mus`] to handle this gracefully.
+    #[inline]
     pub fn create_mus(data: &[u8]) -> Music {
+        Music::try_create_mus(data).expect("Invalid MUS data")
+    }
+
+    /// Creates a music object from the byte data of a MUS file,
+    /// returning `None` if the contents could not be read as such.
+    pub fn try_create_mus(data: &[u8]) -> Option<Music> {
         // safety: although pointer type is *mut void_t,
         // no data is never written via the pointer.
         unsafe {
             let music = dos_like_sys::createmus(data.as_ptr() as *mut _, data.len() as c_int);
-            Music(music)
+            if music.is_null() {
+                None
+            } else {
+                Some(Music(music))
+            }
         }
     }
 

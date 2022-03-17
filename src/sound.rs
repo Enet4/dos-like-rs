@@ -173,11 +173,7 @@ pub fn try_create_sound(channels: u32, sample_rate: u32, samples: &[u16]) -> Opt
             samples.len() as c_int,
             samples.as_ptr() as *mut c_short,
         );
-        if let Some(sound) = NonNull::new(sound) {
-            Some(Sound(sound))
-        } else {
-            None
-        }
+        NonNull::new(sound).map(Sound)
     }
 }
 

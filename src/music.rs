@@ -89,11 +89,7 @@ impl Music {
         // no data is never written via the pointer.
         unsafe {
             let music = dos_like_sys::createmus(data.as_ptr() as *mut _, data.len() as c_int);
-            if let Some(music) = NonNull::new(music) {
-                Some(Music(music))
-            } else {
-                None
-            }
+            NonNull::new(music).map(Music)
         }
     }
 

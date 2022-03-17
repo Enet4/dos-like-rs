@@ -4,7 +4,7 @@
 use std::{
     ffi::{CStr, CString},
     num::NonZeroU32,
-    os::raw::{c_int, c_uint},
+    os::raw::{c_int, c_uint}, ptr::NonNull,
 };
 
 use crate::FileError;
@@ -593,7 +593,7 @@ pub struct Image {
     /// The height of the image.
     height: u32,
     /// Pointer to the indexed pixel data.
-    data: *mut u8,
+    data: NonNull<u8>,
 }
 
 unsafe impl Send for Image {}
@@ -611,14 +611,14 @@ impl Image {
     /// Gets the image data as a slice of bytes,
     /// each byte representing a pixel indexed by the image's palette.
     pub fn data(&self) -> &[u8] {
-        unsafe { std::slice::from_raw_parts(self.data, self.width as usize * self.height as usize) }
+        unsafe { std::slice::from_raw_parts(self.data.as_ptr(), self.width as usize * self.height as usize) }
     }
 
     /// Gets the image data as a mutable slice of bytes,
     /// each byte representing a pixel indexed by the image's palette.
     pub fn data_mut(&mut self) -> &mut [u8] {
         unsafe {
-            std::slice::from_raw_parts_mut(self.data, self.width as usize * self.height as usize)
+            std::slice::from_raw_parts_mut(self.data.as_ptr(), self.width as usize * self.height as usize)
         }
     }
 
@@ -670,17 +670,17 @@ pub fn load_gif(path: impl AsRef<str>) -> Result<Image, FileError> {
             palette.as_mut_ptr(),
         );
 
-        if data.is_null() {
-            return Err(FileError::FileNotFound);
+        if let Some(data) = NonNull::new(data) {
+            Ok(Image {
+                width: width as u32,
+                height: height as u32,
+                palette_count: palcount as u32,
+                palette,
+                data,
+            })
+        } else {
+            Err(FileError::FileNotFound)
         }
-
-        Ok(Image {
-            width: width as u32,
-            height: height as u32,
-            palette_count: palcount as u32,
-            palette,
-            data,
-        })
     }
 }
 

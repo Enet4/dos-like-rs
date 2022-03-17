@@ -2,7 +2,7 @@
 //!
 //! See also [`sound`](super::sound) for the sound module.
 
-use std::{ffi::CString, num::NonZeroU32, os::raw::c_int};
+use std::{ffi::CString, num::NonZeroU32, os::raw::c_int, ptr::NonNull};
 
 use crate::FileError;
 
@@ -10,7 +10,7 @@ use crate::FileError;
 ///
 /// This is a wrapper around the [`dos_like_sys::music_t`] struct.
 #[derive(Debug)]
-pub struct Music(*mut dos_like_sys::music_t);
+pub struct Music(NonNull<dos_like_sys::music_t>);
 
 unsafe impl Send for Music {}
 
@@ -21,10 +21,11 @@ impl Music {
 
         unsafe {
             let music = dos_like_sys::loadmid(filename.as_ptr() as *const _);
-            if music.is_null() {
-                return Err(FileError::FileNotFound);
+            if let Some(music) = NonNull::new(music) {
+                Ok(Music(music))
+            } else {
+                Err(FileError::FileNotFound)
             }
-            Ok(Music(music))
         }
     }
 
@@ -34,10 +35,11 @@ impl Music {
 
         unsafe {
             let music = dos_like_sys::loadmus(filename.as_ptr() as *const _);
-            if music.is_null() {
-                return Err(FileError::FileNotFound);
+            if let Some(music) = NonNull::new(music) {
+                Ok(Music(music))
+            } else {
+                Err(FileError::FileNotFound)
             }
-            Ok(Music(music))
         }
     }
 
@@ -47,10 +49,11 @@ impl Music {
 
         unsafe {
             let music = dos_like_sys::loadmod(filename.as_ptr() as *const _);
-            if music.is_null() {
-                return Err(FileError::FileNotFound);
+            if let Some(music) = NonNull::new(music) {
+                Ok(Music(music))
+            } else {
+                Err(FileError::FileNotFound)
             }
-            Ok(Music(music))
         }
     }
 
@@ -60,10 +63,11 @@ impl Music {
 
         unsafe {
             let music = dos_like_sys::loadopb(filename.as_ptr() as *const _);
-            if music.is_null() {
-                return Err(FileError::FileNotFound);
+            if let Some(music) = NonNull::new(music) {
+                Ok(Music(music))
+            } else {
+                Err(FileError::FileNotFound)
             }
-            Ok(Music(music))
         }
     }
 
@@ -85,10 +89,10 @@ impl Music {
         // no data is never written via the pointer.
         unsafe {
             let music = dos_like_sys::createmus(data.as_ptr() as *mut _, data.len() as c_int);
-            if music.is_null() {
-                None
-            } else {
+            if let Some(music) = NonNull::new(music) {
                 Some(Music(music))
+            } else {
+                None
             }
         }
     }
@@ -110,7 +114,7 @@ impl Music {
 /// `volume` is a number between 0 (silent) and 255 (full volume).
 pub fn play_music(music: &Music, loop_: bool, volume: u8) {
     unsafe {
-        dos_like_sys::playmusic(music.0, loop_ as c_int, volume as c_int);
+        dos_like_sys::playmusic(music.0.as_ptr(), loop_ as c_int, volume as c_int);
     }
 }
 

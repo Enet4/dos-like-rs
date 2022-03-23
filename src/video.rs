@@ -478,7 +478,7 @@ pub fn fill_ellipse(x: u16, y: u16, rx: u16, ry: u16) {
     }
 }
 
-/// Draws a non-filled polygon on the screen,
+/// Draws a poly-line on the screen,
 /// with the given flat list of XY coordinates in pixels.
 ///
 /// Only makes sense in graphics mode.
@@ -487,13 +487,13 @@ pub fn fill_ellipse(x: u16, y: u16, rx: u16, ry: u16) {
 ///
 /// Panics if the given list of points is empty or not even.
 #[inline]
-pub fn draw_poly(points: &[u16]) {
+pub fn draw_poly(points: &[i32]) {
     assert!(!points.is_empty() && points.len() % 2 == 0);
 
     // Safety: although the pointer type is *mut,
     // it never really writes via the pointer.
     unsafe {
-        dos_like_sys::drawpoly(points.as_ptr() as *mut _, points.len() as c_int);
+        dos_like_sys::drawpoly(points.as_ptr() as *mut _, (points.len() / 2) as c_int);
     }
 }
 
@@ -506,13 +506,13 @@ pub fn draw_poly(points: &[u16]) {
 ///
 /// Panics if the given list of points is empty or not even.
 #[inline]
-pub fn fill_poly(points: &[u16]) {
+pub fn fill_poly(points: &[i32]) {
     assert!(!points.is_empty() && points.len() % 2 == 0);
 
     // Safety: although the pointer type is *mut,
     // it never really writes via the pointer.
     unsafe {
-        dos_like_sys::fillpoly(points.as_ptr() as *mut _, points.len() as c_int);
+        dos_like_sys::fillpoly(points.as_ptr() as *mut _, (points.len() / 2) as c_int);
     }
 }
 

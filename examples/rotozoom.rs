@@ -7,7 +7,7 @@
 
 use dos_like::{
     dos_main, key_state, load_gif, screen_buffer, set_double_buffer, set_pal, set_video_mode,
-    shutting_down, swap_buffers, wait_vbl, KeyCode, VideoMode,
+    shutting_down, swap_buffers_and_get, wait_vbl, KeyCode, VideoMode,
 };
 use std::f32::consts::PI;
 
@@ -61,7 +61,7 @@ dos_main! {
                     dest_ofs += 1;
                 }
             }
-            buffer = swap_buffers();
+            buffer = swap_buffers_and_get();
 
             if key_state(KeyCode::KEY_ESCAPE) {
                 break;

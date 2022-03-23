@@ -5,7 +5,7 @@
 
 use dos_like::{
     key_state, screen_buffer, set_double_buffer, set_pal, set_video_mode, shutting_down,
-    swap_buffers, wait_vbl, KeyCode, VideoMode,
+    swap_buffers_and_get, wait_vbl, KeyCode, VideoMode,
 };
 use std::os::raw::c_int;
 
@@ -64,7 +64,7 @@ dos_like::dos_main! {
             }
 
             //make everything visible
-            buffer = swap_buffers();
+            buffer = swap_buffers_and_get();
 
             if key_state(KeyCode::KEY_ESCAPE) {
                 break;

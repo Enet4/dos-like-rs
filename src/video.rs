@@ -256,8 +256,8 @@ pub unsafe fn swap_buffers() -> &'static mut [u8] {
 /// are incompatible with the length of the source,
 /// since this is likely a bug.
 pub fn blit(
-    x: u16,
-    y: u16,
+    x: i32,
+    y: i32,
     source: &[u8],
     width: u16,
     height: u16,
@@ -311,8 +311,8 @@ pub fn blit(
 /// are incompatible with the length of the source,
 /// since this is likely a bug.
 pub fn mask_blit(
-    x: u16,
-    y: u16,
+    x: i32,
+    y: i32,
     source: &[u8],
     width: u16,
     height: u16,
@@ -365,7 +365,7 @@ pub fn clear_screen() {
 ///
 /// Only makes sense in graphics mode.
 #[inline]
-pub fn pixel(x: u16, y: u16) -> u8 {
+pub fn pixel(x: i32, y: i32) -> u8 {
     unsafe { dos_like_sys::getpixel(x as c_int, y as c_int) as u8 }
 }
 
@@ -383,7 +383,7 @@ pub fn put_pixel(x: u16, y: u16, color: u8) {
 ///
 /// Only makes sense in graphics mode.
 #[inline]
-pub fn h_line(x: u16, y: u16, len: u16, color: u8) {
+pub fn h_line(x: i32, y: i32, len: u16, color: u8) {
     unsafe {
         dos_like_sys::hline(x as c_int, y as c_int, len as c_int, color as c_int);
     }
@@ -412,7 +412,7 @@ pub fn get_color() -> u8 {
 ///
 /// Only makes sense in graphics mode.
 #[inline]
-pub fn line(x1: u16, y1: u16, x2: u16, y2: u16) {
+pub fn line(x1: i32, y1: i32, x2: i32, y2: i32) {
     unsafe {
         dos_like_sys::line(x1 as c_int, y1 as c_int, x2 as c_int, y2 as c_int);
     }
@@ -422,9 +422,9 @@ pub fn line(x1: u16, y1: u16, x2: u16, y2: u16) {
 ///
 /// Only makes sense in graphics mode.
 #[inline]
-pub fn rectangle(x1: u16, y1: u16, x2: u16, y2: u16) {
+pub fn rectangle(x1: i32, y1: i32, width: u16, height: u16) {
     unsafe {
-        dos_like_sys::rectangle(x1 as c_int, y1 as c_int, x2 as c_int, y2 as c_int);
+        dos_like_sys::rectangle(x1 as c_int, y1 as c_int, width as c_int, height as c_int);
     }
 }
 
@@ -432,9 +432,9 @@ pub fn rectangle(x1: u16, y1: u16, x2: u16, y2: u16) {
 ///
 /// Only makes sense in graphics mode.
 #[inline]
-pub fn bar(x1: u16, y1: u16, x2: u16, y2: u16) {
+pub fn bar(x1: i32, y1: i32, width: u16, height: u16) {
     unsafe {
-        dos_like_sys::bar(x1 as c_int, y1 as c_int, x2 as c_int, y2 as c_int);
+        dos_like_sys::bar(x1 as c_int, y1 as c_int, width as c_int, height as c_int);
     }
 }
 
@@ -442,7 +442,7 @@ pub fn bar(x1: u16, y1: u16, x2: u16, y2: u16) {
 ///
 /// Only makes sense in graphics mode.
 #[inline]
-pub fn circle(x: u16, y: u16, r: u16) {
+pub fn circle(x: i32, y: i32, r: u16) {
     unsafe {
         dos_like_sys::circle(x as c_int, y as c_int, r as c_int);
     }
@@ -452,7 +452,7 @@ pub fn circle(x: u16, y: u16, r: u16) {
 ///
 /// Only makes sense in graphics mode.
 #[inline]
-pub fn fill_circle(x: u16, y: u16, r: u16) {
+pub fn fill_circle(x: i32, y: i32, r: u16) {
     unsafe {
         dos_like_sys::fillcircle(x as c_int, y as c_int, r as c_int);
     }
@@ -462,7 +462,7 @@ pub fn fill_circle(x: u16, y: u16, r: u16) {
 ///
 /// Only makes sense in graphics mode.
 #[inline]
-pub fn ellipse(x: u16, y: u16, rx: u16, ry: u16) {
+pub fn ellipse(x: i32, y: i32, rx: u16, ry: u16) {
     unsafe {
         dos_like_sys::ellipse(x as c_int, y as c_int, rx as c_int, ry as c_int);
     }
@@ -472,7 +472,7 @@ pub fn ellipse(x: u16, y: u16, rx: u16, ry: u16) {
 ///
 /// Only makes sense in graphics mode.
 #[inline]
-pub fn fill_ellipse(x: u16, y: u16, rx: u16, ry: u16) {
+pub fn fill_ellipse(x: i32, y: i32, rx: u16, ry: u16) {
     unsafe {
         dos_like_sys::fillellipse(x as c_int, y as c_int, rx as c_int, ry as c_int);
     }
@@ -519,7 +519,7 @@ pub fn fill_poly(points: &[i32]) {
 /// Flood fills the screen from the given position.
 ///
 /// Only makes sense in graphics mode.
-pub fn flood_fill(x: u16, y: u16) {
+pub fn flood_fill(x: i32, y: i32) {
     unsafe {
         dos_like_sys::floodfill(x as c_int, y as c_int);
     }
@@ -529,7 +529,7 @@ pub fn flood_fill(x: u16, y: u16) {
 /// with the given color as boundary.
 ///
 /// Only makes sense in graphics mode.
-pub fn boundary_fill(x: u16, y: u16, boundary: u8) {
+pub fn boundary_fill(x: i32, y: i32, boundary: u8) {
     unsafe {
         dos_like_sys::boundaryfill(x as c_int, y as c_int, boundary as c_int);
     }
@@ -538,7 +538,7 @@ pub fn boundary_fill(x: u16, y: u16, boundary: u8) {
 /// Blits a text to the screen at the given position.
 ///
 /// XY coordinates are in pixels.
-pub fn out_text_xy(x: u16, y: u16, text: impl AsRef<[u8]>) {
+pub fn out_text_xy(x: i32, y: i32, text: impl AsRef<[u8]>) {
     let text = CString::new(text.as_ref()).unwrap();
 
     unsafe {
@@ -550,7 +550,7 @@ pub fn out_text_xy(x: u16, y: u16, text: impl AsRef<[u8]>) {
 /// wrapping around before it goes beyond the width specified.
 ///
 /// XY coordinates and width are in pixels.
-pub fn wrap_text_xy(x: u16, y: u16, text: impl AsRef<[u8]>, width: u16) {
+pub fn wrap_text_xy(x: i32, y: i32, text: impl AsRef<[u8]>, width: u16) {
     let text = CString::new(text.as_ref()).unwrap();
 
     unsafe {
@@ -567,7 +567,7 @@ pub fn wrap_text_xy(x: u16, y: u16, text: impl AsRef<[u8]>, width: u16) {
 /// wrapping around before it goes beyond the width specified.
 ///
 /// XY coordinates and width are in pixels.
-pub fn center_text_xy(x: u16, y: u16, text: impl AsRef<[u8]>, width: u16) {
+pub fn center_text_xy(x: i32, y: i32, text: impl AsRef<[u8]>, width: u16) {
     let text = CString::new(text.as_ref()).unwrap();
 
     unsafe {

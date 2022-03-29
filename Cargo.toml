@@ -1,6 +1,6 @@
 [package]
 name = "dos-like"
-version = "0.2.3"
+version = "0.3.0"
 description = "Framework for writing DOS-like applications"
 authors = ["Eduardo Pinho <enet4mikeenet@gmail.com>"]
 keywords = ["dos", "vga", "opl", "ms-dos"]

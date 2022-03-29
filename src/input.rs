@@ -70,27 +70,27 @@ pub fn read_chars() -> SmallVec<[u8; 4]> {
 }
 
 /// Gets the absolute mouse position on the X axis.
-pub fn mouse_x() -> u16 {
-    unsafe { dos_like_sys::mousex() as u16 }
+pub fn mouse_x() -> i32 {
+    unsafe { dos_like_sys::mousex() }
 }
 
 /// Gets the absolute mouse position on the Y axis.
-pub fn mouse_y() -> u16 {
-    unsafe { dos_like_sys::mousey() as u16 }
+pub fn mouse_y() -> i32 {
+    unsafe { dos_like_sys::mousey() }
 }
 
 /// Gets the mouse relative position
 /// since the last internal application loop
 /// on the X axis.
-pub fn mouse_rel_x() -> u16 {
-    unsafe { dos_like_sys::mouserelx() as u16 }
+pub fn mouse_rel_x() -> i32 {
+    unsafe { dos_like_sys::mouserelx() }
 }
 
 /// Gets the mouse relative position
 /// since the last internal application loop
 /// on the Y axis.
-pub fn mouse_rel_y() -> u16 {
-    unsafe { dos_like_sys::mouserely() as u16 }
+pub fn mouse_rel_y() -> i32 {
+    unsafe { dos_like_sys::mouserely() }
 }
 
 impl KeyCode {

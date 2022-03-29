@@ -169,7 +169,7 @@ pub fn pal(index: usize) -> (u8, u8, u8) {
 ///
 /// However, if _double buffering_ is enabled
 /// (via [`set_double_buffer`]),
-/// then it is safe to call [`swap_buffers`]
+/// then it is safe to call [`swap_buffers`] or [`swap_buffers_and_get`]
 /// and immediately drop this slice in favor of the new buffer slice.
 pub unsafe fn screen_buffer() -> &'static mut [u8] {
     // Safety: it is documented that the user
@@ -184,7 +184,8 @@ pub unsafe fn screen_buffer() -> &'static mut [u8] {
     }
 }
 
-/// Swaps the current buffer a mutable slice of the current screen buffer.
+/// Swaps the current screen buffers
+/// and returns a mutable slice of the current screen buffer.
 ///
 /// Only makes sense in graphics mode.
 ///
@@ -200,7 +201,8 @@ pub unsafe fn screen_buffer() -> &'static mut [u8] {
 /// any buffer slice obtained through this function or [`screen_buffer`]
 /// must be dropped _before_ this call.
 /// That is,
-/// it is only safe to call `swap_buffers` with an existing buffer slice
+/// it is only safe to call [`swap_buffers`] or `swap_buffers_and_get`
+/// with an existing buffer slice
 /// if double buffering is enabled
 /// (via [`set_double_buffer`]).
 /// and the other slice is immediately dropped afterwards.
@@ -221,10 +223,10 @@ pub unsafe fn screen_buffer() -> &'static mut [u8] {
 ///     }
 ///
 ///     // safety: previous buffer slice will be dropped
-///     buffer = unsafe { swap_buffers() };
+///     buffer = unsafe { swap_buffers_and_get() };
 /// }
 /// ```
-pub unsafe fn swap_buffers() -> &'static mut [u8] {
+pub unsafe fn swap_buffers_and_get() -> &'static mut [u8] {
     // Safety: it is documented that the user
     // must drop other buffer slices
     // and must not draw anything through other functions,
@@ -235,6 +237,47 @@ pub unsafe fn swap_buffers() -> &'static mut [u8] {
         let width = dos_like_sys::screenwidth() as usize;
         let height = dos_like_sys::screenheight() as usize;
         std::slice::from_raw_parts_mut(buf, width * height)
+    }
+}
+
+/// Swaps the current screen buffers,
+/// thus changing what to draw to the screen.
+/// 
+/// When double buffering is enabled,
+/// any drawing operations are performed on the off-screen buffer,
+/// so this function needs to be called
+/// for the changes to be displayed.
+///
+/// Only makes sense in graphics mode.
+/// 
+/// For the function which also returns a slice,
+/// see [`swap_buffers_and_get`].
+/// 
+/// # Example
+/// 
+/// ```no_run
+/// # use dos_like::*;
+/// set_video_mode(VideoMode::Graphics320x200);
+/// // enable double buffering
+/// set_double_buffer(true);
+///
+/// let mut i = 0;
+/// loop {
+///     // draw some things
+///     line(0, 0, i, 200);
+///     i += 1;
+///
+///     // swap!
+///     swap_buffers();
+/// }
+/// ```
+pub fn swap_buffers() {
+
+    // safety: no slice is returned,
+    // so aliased slices are not possible without calling
+    // the other unsafe functions
+    unsafe {
+        dos_like_sys::swapbuffers();
     }
 }
 

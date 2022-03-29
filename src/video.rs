@@ -243,9 +243,9 @@ pub unsafe fn swap_buffers_and_get() -> &'static mut [u8] {
 /// Swaps the current screen buffers,
 /// thus changing what to draw to the screen.
 /// 
-/// When double buffering is set,
+/// When double buffering is enabled,
 /// any drawing operations are performed on the off-screen buffer,
-/// sp this function needs to be called
+/// so this function needs to be called
 /// for the changes to be displayed.
 ///
 /// Only makes sense in graphics mode.

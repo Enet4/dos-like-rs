@@ -20,6 +20,7 @@ smallvec = "1.8.0"
 
 default = []
 disable-screen-frame = ["dos-like-sys/disable-screen-frame"]
+disable-system-cursor = ["dos-like-sys/disable-system-cursor"]
 
 [profile.dev]
 panic = "abort"

@@ -142,6 +142,16 @@ extern "C" {
     );
 }
 extern "C" {
+    pub fn setdrawtarget(
+        pixels: *mut ::std::os::raw::c_uchar,
+        width: ::std::os::raw::c_int,
+        height: ::std::os::raw::c_int,
+    );
+}
+extern "C" {
+    pub fn resetdrawtarget();
+}
+extern "C" {
     pub fn setcolor(color: ::std::os::raw::c_int);
 }
 extern "C" {

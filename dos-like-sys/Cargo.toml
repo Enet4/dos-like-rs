@@ -38,4 +38,4 @@ default = []
 use-pkgconfig = ["pkg-config"]
 use-vcpkg = ["vcpkg"]
 disable-screen-frame = []
-
+disable-system-cursor = []

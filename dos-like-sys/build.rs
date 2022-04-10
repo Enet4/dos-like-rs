@@ -49,6 +49,10 @@ fn compile(source_path: &Path) -> PathBuf {
         build.define("DISABLE_SCREEN_FRAME", "1");
     }
 
+    if cfg!(feature = "disable-system-cursor") {
+        build.define("DISABLE_SYSTEM_CURSOR", "1");        
+    }
+
     if cfg!(target_arch = "wasm32") {
         build.define("__wasm__", "1");
     }

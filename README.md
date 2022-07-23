@@ -69,8 +69,8 @@ the CRT screen frame around the viewport does not appear.
 
 ## Platform support
 
-These bindings have been tested on Linux and Windows.
-WebAssembly and Mac OS support is currently not guaranteed
+These bindings have been tested on Linux, Windows and MacOS Monterey (x86).
+WebAssembly support is currently not guaranteed
 (but your assistance on this would be greatly appreciated!).
 
 ## Building

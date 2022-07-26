@@ -217,6 +217,7 @@ pub unsafe fn screen_buffer() -> &'static mut [u8] {
 /// let mut buffer = unsafe { screen_buffer() };
 ///
 /// loop {
+///     wait_vbl();
 ///     // do things with buffer
 ///     for (i, v) in buffer.chunks_mut(320).enumerate() {
 ///         v.fill(i as u8);
@@ -581,6 +582,8 @@ pub fn boundary_fill(x: i32, y: i32, boundary: u8) {
 /// Blits a text to the screen at the given position.
 ///
 /// XY coordinates are in pixels.
+/// 
+/// Only makes sense in graphics mode.
 pub fn out_text_xy(x: i32, y: i32, text: impl AsRef<[u8]>) {
     let text = CString::new(text.as_ref()).unwrap();
 
@@ -593,6 +596,8 @@ pub fn out_text_xy(x: i32, y: i32, text: impl AsRef<[u8]>) {
 /// wrapping around before it goes beyond the width specified.
 ///
 /// XY coordinates and width are in pixels.
+/// 
+/// Only makes sense in graphics mode.
 pub fn wrap_text_xy(x: i32, y: i32, text: impl AsRef<[u8]>, width: u16) {
     let text = CString::new(text.as_ref()).unwrap();
 
@@ -606,10 +611,11 @@ pub fn wrap_text_xy(x: i32, y: i32, text: impl AsRef<[u8]>, width: u16) {
     }
 }
 
-/// Blits a text to the screen at the given position,
-/// wrapping around before it goes beyond the width specified.
+/// Blits a text to the screen centered at the given position.
 ///
 /// XY coordinates and width are in pixels.
+/// 
+/// Only makes sense in graphics mode.
 pub fn center_text_xy(x: i32, y: i32, text: impl AsRef<[u8]>, width: u16) {
     let text = CString::new(text.as_ref()).unwrap();
 

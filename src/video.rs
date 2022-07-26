@@ -243,19 +243,19 @@ pub unsafe fn swap_buffers_and_get() -> &'static mut [u8] {
 
 /// Swaps the current screen buffers,
 /// thus changing what to draw to the screen.
-/// 
+///
 /// When double buffering is enabled,
 /// any drawing operations are performed on the off-screen buffer,
 /// so this function needs to be called
 /// for the changes to be displayed.
 ///
 /// Only makes sense in graphics mode.
-/// 
+///
 /// For the function which also returns a slice,
 /// see [`swap_buffers_and_get`].
-/// 
+///
 /// # Example
-/// 
+///
 /// ```no_run
 /// # use dos_like::*;
 /// set_video_mode(VideoMode::Graphics320x200);
@@ -273,7 +273,6 @@ pub unsafe fn swap_buffers_and_get() -> &'static mut [u8] {
 /// }
 /// ```
 pub fn swap_buffers() {
-
     // safety: no slice is returned,
     // so aliased slices are not possible without calling
     // the other unsafe functions
@@ -582,7 +581,7 @@ pub fn boundary_fill(x: i32, y: i32, boundary: u8) {
 /// Blits a text to the screen at the given position.
 ///
 /// XY coordinates are in pixels.
-/// 
+///
 /// Only makes sense in graphics mode.
 pub fn out_text_xy(x: i32, y: i32, text: impl AsRef<[u8]>) {
     let text = CString::new(text.as_ref()).unwrap();
@@ -596,7 +595,7 @@ pub fn out_text_xy(x: i32, y: i32, text: impl AsRef<[u8]>) {
 /// wrapping around before it goes beyond the width specified.
 ///
 /// XY coordinates and width are in pixels.
-/// 
+///
 /// Only makes sense in graphics mode.
 pub fn wrap_text_xy(x: i32, y: i32, text: impl AsRef<[u8]>, width: u16) {
     let text = CString::new(text.as_ref()).unwrap();
@@ -614,7 +613,7 @@ pub fn wrap_text_xy(x: i32, y: i32, text: impl AsRef<[u8]>, width: u16) {
 /// Blits a text to the screen centered at the given position.
 ///
 /// XY coordinates and width are in pixels.
-/// 
+///
 /// Only makes sense in graphics mode.
 pub fn center_text_xy(x: i32, y: i32, text: impl AsRef<[u8]>, width: u16) {
     let text = CString::new(text.as_ref()).unwrap();

@@ -74,7 +74,11 @@ fn compute_include_paths(fallback_path: impl AsRef<Path>) -> Vec<PathBuf> {
         include_paths.push(PathBuf::from("/usr/include"));
     }
 
-    if !(target_os == "linux" || target_os == "macos") {
+    if host_os == "darwin" {
+        include_paths.push(PathBuf::from("/usr/local/include/SDL2"));
+    }
+
+    if !(target_os == "linux" || target_os == "darwin") {
         return include_paths;
     }
 
@@ -137,7 +141,11 @@ fn link() {
     }
 
     println!("cargo:rustc-flags=-l GLEW");
-    println!("cargo:rustc-flags=-l GL");
+    if cfg!(target_os = "macos") {
+        println!("cargo:rustc-link-lib=framework=OpenGL");
+    } else {
+        println!("cargo:rustc-flags=-l GL");
+    }
 }
 
 #[cfg(feature = "use-pkgconfig")]

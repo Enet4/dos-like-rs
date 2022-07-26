@@ -1,6 +1,6 @@
 //! Module for keyboard and mouse input functions.
 
-use dos_like_sys::keycode_t;
+use dos_like_sys::{keycode_t, KEY_MODIFIER_RELEASED};
 use smallvec::SmallVec;
 
 /// A key code object.
@@ -21,12 +21,44 @@ pub fn key_state(key: KeyCode) -> bool {
     unsafe { dos_like_sys::keystate(key.0) != 0 }
 }
 
+/// A key press/release event.
+///
+/// This new type exists so as to make a distinction
+/// between an event that is either a key press or a key release,
+/// and a plain key code which identifies a key on a keyboard ([`KeyCode`]).
+///
+/// See the various associated constants for specific keys.
+#[derive(Debug, Copy, Clone, Eq, Hash, PartialEq)]
+#[repr(transparent)]
+pub struct KeyEvent(keycode_t);
+
+impl KeyEvent {
+    /// Returns the key code of this event,
+    /// without the release modifier.
+    #[inline]
+    pub fn key_code(self) -> KeyCode {
+        KeyCode(self.0 & 0x7FFF_FFFF)
+    }
+
+    /// Checks whether this event is a key press.
+    #[inline]
+    pub fn is_pressed(self) -> bool {
+        !self.is_released()
+    }
+
+    /// Checks whether this event is a key release.
+    #[inline]
+    pub fn is_released(self) -> bool {
+        (self.0 & KEY_MODIFIER_RELEASED) != 0
+    }
+}
+
 /// Reads the key press events available
 /// and saves them in an array.
 ///
 /// This creates an independent copy of the keys,
 /// consuming the underlying buffer in the process.
-pub fn read_keys() -> SmallVec<[KeyCode; 2]> {
+pub fn read_keys() -> SmallVec<[KeyEvent; 2]> {
     let mut keys = SmallVec::new();
 
     // Safety: readkeys is a valid pointer
@@ -38,7 +70,7 @@ pub fn read_keys() -> SmallVec<[KeyCode; 2]> {
             if c == 0 {
                 break;
             }
-            keys.push(KeyCode(c));
+            keys.push(KeyEvent(c));
         }
     }
 

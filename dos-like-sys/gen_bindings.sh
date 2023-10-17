@@ -5,10 +5,11 @@ if ! which bindgen > /dev/null; then
     exit 1
 fi
 
-bindgen_opt="--rust-target 1.47 --size_t-is-usize"
+bindgen_opt="--rust-target 1.64"
 
 headers="dos-like/source/dos.h"
 
+# bindgen 0.68.1
 cmd="bindgen $bindgen_opt $headers -o src/bindings.rs"
 echo "${cmd}"
 ${cmd}

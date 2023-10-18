@@ -11,6 +11,9 @@ use smallvec::SmallVec;
 pub struct KeyCode(keycode_t);
 
 impl From<KeyCode> for u32 {
+    // ignore false positive from clippy,
+    // as we c_uint might not always be u32
+    #[allow(clippy::unnecessary_cast)]
     fn from(key: KeyCode) -> u32 {
         key.0 as u32
     }

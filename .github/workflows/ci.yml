@@ -35,6 +35,7 @@ jobs:
       run: cargo build --example rotozoom --example plasma --example sound --example keyboard
     - name: Run Clippy
       run: cargo clippy
+      if: matrix.rust == 'stable'
       env:
         RUSTFLAGS: -W warnings
 

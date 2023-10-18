@@ -22,12 +22,21 @@ jobs:
     - name: Install libGLEW & SDL2
       run: sudo apt update && sudo apt install -y libglew-dev libsdl2-dev
     - uses: actions/checkout@v3
+    - uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: stable
+        components: clippy 
+        cache: true
     - name: Build and run tests (with features)
       run: cargo test --verbose --features disable-screen-frame,disable-system-cursor
     - name: Build and run tests (no features)
       run: cargo test --verbose
     - name: Build examples
       run: cargo build --example rotozoom --example plasma --example sound --example keyboard
+    - name: Run Clippy
+      run: cargo clippy
+      env:
+        RUSTFLAGS: -W warnings
 
   build-windows:
     runs-on: windows-latest
@@ -48,18 +57,3 @@ jobs:
       run: cargo test --verbose
     - name: Build examples
       run: cargo build --example rotozoom --example plasma --example sound --example keyboard
-
-  clippy:
-    name: Clippy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: stable
-          components: clippy 
-          cache: true
-      - name: Run Clippy
-        run: cargo clippy
-        env:
-          RUSTFLAGS: -W warnings

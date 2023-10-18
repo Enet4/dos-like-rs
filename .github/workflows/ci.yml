@@ -22,12 +22,12 @@ jobs:
     - name: Install libGLEW & SDL2
       run: sudo apt update && sudo apt install -y libglew-dev libsdl2-dev
     - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
+    - name: Build and run tests (with features)
+      run: cargo test --verbose --features disable-screen-frame,disable-system-cursor
+    - name: Build and run tests (no features)
       run: cargo test --verbose
     - name: Build examples
-      run: cargo build --example rotozoom --example plasma --example sound 
+      run: cargo build --example rotozoom --example plasma --example sound --example keyboard
 
   build-windows:
     runs-on: windows-latest
@@ -38,28 +38,28 @@ jobs:
           - beta
     steps:
     - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
+    - uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: ${{ matrix.rust }}
+        cache: true
+    - name: Build and run tests (with features)
+      run: cargo test --verbose --features disable-screen-frame,disable-system-cursor
+    - name: Build and run tests (no features)
       run: cargo test --verbose
     - name: Build examples
-      run: cargo build --example rotozoom --example plasma --example sound 
+      run: cargo build --example rotozoom --example plasma --example sound --example keyboard
 
   clippy:
     name: Clippy
-    runs-on: windows-latest
-    strategy:
-      matrix:
-        rust:
-          - stable
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          profile: minimal
-          toolchain: ${{ matrix.rust }}
-          override: true
-      - run: rustup component add clippy
-      - uses: actions-rs/cargo@v1
-        with:
-          command: clippy
+          toolchain: stable
+          components: clippy 
+          cache: true
+      - name: Run Clippy
+        run: cargo clippy
+        env:
+          RUSTFLAGS: -W warnings
